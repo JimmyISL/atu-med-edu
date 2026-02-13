@@ -79,14 +79,14 @@ export default function CoursesList() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-[var(--color-background)]">
       {/* TopBar */}
       <div className="flex justify-between items-center px-[32px] py-[16px] border-b border-[var(--color-border)]">
         <div>
-          <h1 className="font-headline text-[20px] font-bold tracking-[2px] text-foreground">
+          <h1 className="font-headline text-[20px] font-bold tracking-[2px] text-[var(--color-foreground)]">
             COURSES
           </h1>
-          <p className="font-mono text-[13px] text-muted-foreground">
+          <p className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
             Manage course catalog and assignments.
           </p>
         </div>
@@ -106,8 +106,8 @@ export default function CoursesList() {
             onClick={() => setActiveTab('all')}
             className={`font-mono text-[13px] pb-[4px] ${
               activeTab === 'all'
-                ? 'border-b-2 border-[#FACC15] text-foreground font-bold'
-                : 'text-muted-foreground'
+                ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
+                : 'text-[var(--color-muted-foreground)]'
             }`}
           >
             All Courses
@@ -116,8 +116,8 @@ export default function CoursesList() {
             onClick={() => setActiveTab('active')}
             className={`font-mono text-[13px] pb-[4px] ${
               activeTab === 'active'
-                ? 'border-b-2 border-[#FACC15] text-foreground font-bold'
-                : 'text-muted-foreground'
+                ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
+                : 'text-[var(--color-muted-foreground)]'
             }`}
           >
             Active
@@ -126,8 +126,8 @@ export default function CoursesList() {
             onClick={() => setActiveTab('archived')}
             className={`font-mono text-[13px] pb-[4px] ${
               activeTab === 'archived'
-                ? 'border-b-2 border-[#FACC15] text-foreground font-bold'
-                : 'text-muted-foreground'
+                ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
+                : 'text-[var(--color-muted-foreground)]'
             }`}
           >
             Archived
@@ -135,13 +135,13 @@ export default function CoursesList() {
         </div>
 
         <div className="relative">
-          <Search className="absolute left-[12px] top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-muted-foreground" />
+          <Search className="absolute left-[12px] top-1/2 -translate-y-1/2 w-[16px] h-[16px] text-[var(--color-muted-foreground)]" />
           <input
             type="text"
             placeholder="Search courses..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="font-mono text-[13px] pl-[36px] pr-[12px] py-[8px] w-[240px] bg-background border border-border rounded-[4px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500"
+            className="font-mono text-[13px] pl-[36px] pr-[12px] py-[8px] w-[240px] bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
           />
         </div>
       </div>
@@ -150,20 +150,20 @@ export default function CoursesList() {
       <div className="flex-1 overflow-auto px-[32px] py-[24px]">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border">
-              <th className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase text-left pb-[12px]">
+            <tr className="border-b border-[var(--color-border)]">
+              <th className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase text-left pb-[12px]">
                 COURSE NAME
               </th>
-              <th className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase text-left pb-[12px]">
+              <th className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase text-left pb-[12px]">
                 COURSE NR
               </th>
-              <th className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase text-left pb-[12px]">
+              <th className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase text-left pb-[12px]">
                 INSTRUCTOR
               </th>
-              <th className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase text-left pb-[12px]">
+              <th className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase text-left pb-[12px]">
                 CME TYPE
               </th>
-              <th className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase text-left pb-[12px]">
+              <th className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase text-left pb-[12px]">
                 STATUS
               </th>
             </tr>
@@ -173,18 +173,18 @@ export default function CoursesList() {
               <tr
                 key={course.id}
                 onClick={() => navigate('/courses/1')}
-                className="border-b border-border cursor-pointer hover:bg-muted/50"
+                className="border-b border-[var(--color-border)] cursor-pointer hover:bg-[var(--color-muted)]"
               >
-                <td className="font-mono text-[13px] text-foreground py-[16px]">
+                <td className="font-mono text-[13px] text-[var(--color-foreground)] py-[16px]">
                   {course.name}
                 </td>
-                <td className="font-mono text-[13px] text-muted-foreground py-[16px]">
+                <td className="font-mono text-[13px] text-[var(--color-muted-foreground)] py-[16px]">
                   {course.courseNr}
                 </td>
-                <td className="font-mono text-[13px] text-muted-foreground py-[16px]">
+                <td className="font-mono text-[13px] text-[var(--color-muted-foreground)] py-[16px]">
                   {course.instructor}
                 </td>
-                <td className="font-mono text-[13px] text-muted-foreground py-[16px]">
+                <td className="font-mono text-[13px] text-[var(--color-muted-foreground)] py-[16px]">
                   {course.cmeType}
                 </td>
                 <td className="font-mono text-[13px] py-[16px]">
@@ -204,17 +204,17 @@ export default function CoursesList() {
 
       {/* Pagination */}
       <div className="flex justify-between items-center px-[32px] py-[16px] border-t border-[var(--color-border)]">
-        <div className="font-mono text-[13px] text-muted-foreground">
+        <div className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
           Showing 1-6 of 6 courses
         </div>
         <div className="flex gap-[8px]">
-          <button className="font-mono text-[13px] px-[12px] py-[6px] bg-background border border-border rounded-[4px] text-muted-foreground">
+          <button className="font-mono text-[13px] px-[12px] py-[6px] bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-muted-foreground)]">
             Previous
           </button>
           <button className="font-mono text-[13px] px-[12px] py-[6px] bg-[#FACC15] border border-[#FACC15] rounded-[4px] text-black font-bold">
             1
           </button>
-          <button className="font-mono text-[13px] px-[12px] py-[6px] bg-background border border-border rounded-[4px] text-muted-foreground">
+          <button className="font-mono text-[13px] px-[12px] py-[6px] bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-muted-foreground)]">
             Next
           </button>
         </div>
@@ -223,15 +223,15 @@ export default function CoursesList() {
       {/* Add/Edit Course Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card border border-border rounded-[8px] w-[800px] max-h-[90vh] overflow-y-auto">
+          <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-[8px] w-[800px] max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex justify-between items-center px-[24px] py-[16px] border-b border-border">
-              <h2 className="font-headline text-[18px] font-bold tracking-[1.5px] text-foreground">
+            <div className="flex justify-between items-center px-[24px] py-[16px] border-b border-[var(--color-border)]">
+              <h2 className="font-headline text-[18px] font-bold tracking-[1.5px] text-[var(--color-foreground)]">
                 ADD NEW COURSE
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
               >
                 <X className="w-[20px] h-[20px]" />
               </button>
@@ -241,34 +241,34 @@ export default function CoursesList() {
             <div className="px-[24px] py-[20px] space-y-[20px]">
               {/* Course Name */}
               <div>
-                <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                   COURSE NAME
                 </label>
                 <input
                   type="text"
-                  className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                  className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                   placeholder="Enter course name"
                 />
               </div>
 
               {/* Course Nr */}
               <div>
-                <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                   COURSE NR
                 </label>
                 <input
                   type="text"
-                  className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                  className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                   placeholder="CRS-####"
                 />
               </div>
 
               {/* Chair */}
               <div>
-                <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                   CHAIR
                 </label>
-                <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
                   <option>Select chair</option>
                   <option>Dr. Sarah Mitchell</option>
                   <option>Dr. James Wilson</option>
@@ -279,18 +279,18 @@ export default function CoursesList() {
               </div>
 
               {/* CME & Credits Section */}
-              <div className="border-t border-border pt-[20px]">
-                <h3 className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase mb-[16px]">
+              <div className="border-t border-[var(--color-border)] pt-[20px]">
+                <h3 className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase mb-[16px]">
                   CME & CREDITS
                 </h3>
 
                 <div className="grid grid-cols-3 gap-[16px]">
                   {/* CME Type */}
                   <div>
-                    <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                    <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       CME TYPE
                     </label>
-                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
                       <option>Category 1</option>
                       <option>Category 2</option>
                     </select>
@@ -298,12 +298,12 @@ export default function CoursesList() {
 
                   {/* CME Total */}
                   <div>
-                    <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                    <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       CME TOTAL
                     </label>
                     <input
                       type="number"
-                      className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                      className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                       placeholder="0.0"
                       step="0.1"
                     />
@@ -311,12 +311,12 @@ export default function CoursesList() {
 
                   {/* Value Total */}
                   <div>
-                    <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                    <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       VALUE TOTAL
                     </label>
                     <input
                       type="number"
-                      className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                      className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                       placeholder="$0.00"
                     />
                   </div>
@@ -327,10 +327,10 @@ export default function CoursesList() {
               <div className="grid grid-cols-2 gap-[16px]">
                 {/* Course Type */}
                 <div>
-                  <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                  <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                     COURSE TYPE
                   </label>
-                  <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                  <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
                     <option>Required</option>
                     <option>Elective</option>
                     <option>Optional</option>
@@ -339,12 +339,12 @@ export default function CoursesList() {
 
                 {/* Duration */}
                 <div>
-                  <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                  <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                     DURATION
                   </label>
                   <input
                     type="text"
-                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                     placeholder="e.g., 2 weeks, 40 hours"
                   />
                 </div>
@@ -352,10 +352,10 @@ export default function CoursesList() {
 
               {/* Service/Dept */}
               <div>
-                <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                   SERVICE/DEPT
                 </label>
-                <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
                   <option>Select department</option>
                   <option>Cardiology</option>
                   <option>Internal Medicine</option>
@@ -369,40 +369,40 @@ export default function CoursesList() {
               <div className="grid grid-cols-2 gap-[16px]">
                 {/* Start Date */}
                 <div>
-                  <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                  <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                     START DATE
                   </label>
                   <input
                     type="date"
-                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                   />
                 </div>
 
                 {/* End Date */}
                 <div>
-                  <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                  <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                     END DATE
                   </label>
                   <input
                     type="date"
-                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                   />
                 </div>
               </div>
 
               {/* Personnel Section */}
-              <div className="border-t border-border pt-[20px]">
-                <h3 className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase mb-[16px]">
+              <div className="border-t border-[var(--color-border)] pt-[20px]">
+                <h3 className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase mb-[16px]">
                   PERSONNEL
                 </h3>
 
                 <div className="grid grid-cols-2 gap-[16px]">
                   {/* Moderator 1 */}
                   <div>
-                    <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                    <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       MODERATOR 1
                     </label>
-                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
                       <option>Select moderator</option>
                       <option>Dr. Sarah Mitchell</option>
                       <option>Dr. James Wilson</option>
@@ -414,10 +414,10 @@ export default function CoursesList() {
 
                   {/* Moderator 2 */}
                   <div>
-                    <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                    <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       MODERATOR 2
                     </label>
-                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
                       <option>Select moderator</option>
                       <option>Dr. Sarah Mitchell</option>
                       <option>Dr. James Wilson</option>
@@ -429,10 +429,10 @@ export default function CoursesList() {
 
                   {/* Organizer */}
                   <div>
-                    <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                    <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       ORGANIZER
                     </label>
-                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
                       <option>Select organizer</option>
                       <option>Maria Santos</option>
                       <option>Anna Kowalski</option>
@@ -442,10 +442,10 @@ export default function CoursesList() {
 
                   {/* Admin */}
                   <div>
-                    <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                    <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       ADMIN
                     </label>
-                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
                       <option>Select admin</option>
                       <option>Maria Santos</option>
                       <option>Anna Kowalski</option>
@@ -456,40 +456,40 @@ export default function CoursesList() {
               </div>
 
               {/* Details Section */}
-              <div className="border-t border-border pt-[20px]">
-                <h3 className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase mb-[16px]">
+              <div className="border-t border-[var(--color-border)] pt-[20px]">
+                <h3 className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase mb-[16px]">
                   DETAILS
                 </h3>
 
                 {/* Prerequisites */}
                 <div className="mb-[16px]">
-                  <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                  <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                     PREREQUISITES
                   </label>
                   <textarea
-                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500 min-h-[80px]"
+                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500 min-h-[80px]"
                     placeholder="Enter course prerequisites"
                   />
                 </div>
 
                 {/* Materials Required */}
                 <div className="mb-[16px]">
-                  <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                  <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                     MATERIALS REQUIRED
                   </label>
                   <textarea
-                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500 min-h-[80px]"
+                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500 min-h-[80px]"
                     placeholder="Enter required materials"
                   />
                 </div>
 
                 {/* Notes */}
                 <div>
-                  <label className="font-mono text-[12px] text-muted-foreground tracking-[0.05em] uppercase block mb-[8px]">
+                  <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                     NOTES
                   </label>
                   <textarea
-                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-background border border-border rounded-[4px] text-foreground focus:outline-none focus:ring-1 focus:ring-yellow-500 min-h-[80px]"
+                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500 min-h-[80px]"
                     placeholder="Enter additional notes"
                   />
                 </div>
@@ -497,10 +497,10 @@ export default function CoursesList() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex justify-end gap-[12px] px-[24px] py-[16px] border-t border-border">
+            <div className="flex justify-end gap-[12px] px-[24px] py-[16px] border-t border-[var(--color-border)]">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="font-mono text-[13px] px-[16px] py-[8px] bg-background border border-border rounded-[4px] text-foreground hover:bg-muted"
+                className="font-mono text-[13px] px-[16px] py-[8px] bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] hover:bg-[var(--color-muted)]"
               >
                 Cancel
               </button>

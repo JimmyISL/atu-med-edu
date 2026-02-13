@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../auth';
 import {
   LayoutDashboard,
   Users,
@@ -8,6 +9,7 @@ import {
   FileCheck,
   Settings,
   ChevronsUpDown,
+  LogOut,
 } from 'lucide-react';
 
 interface NavItem {
@@ -42,6 +44,12 @@ const navSections: NavSection[] = [
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="w-[256px] h-full flex flex-col bg-[var(--color-sidebar)] border-r border-[var(--color-sidebar-border)]">
@@ -68,7 +76,7 @@ export function Sidebar() {
             <div className="flex flex-col gap-[2px]">
               {section.items.map((item) => {
                 const Icon = item.icon;
-                const isActive = location.pathname === item.path;
+                const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
 
                 return (
                   <div
@@ -90,25 +98,31 @@ export function Sidebar() {
         ))}
       </div>
 
-      {/* Footer */}
+      {/* Footer - logged-in user */}
       <div className="p-[8px]">
-        <div className="flex items-center justify-between gap-[12px]">
-          <div className="flex items-center gap-[12px]">
+        <div className="flex items-center justify-between gap-[8px]">
+          <div className="flex items-center gap-[12px] min-w-0">
             <div className="w-[40px] h-[40px] bg-[#FACC15] rounded-full flex items-center justify-center flex-shrink-0">
               <span className="font-headline text-[16px] font-bold text-[var(--color-brand-dark)]">
-                SM
+                {user?.initials ?? '??'}
               </span>
             </div>
             <div className="flex flex-col min-w-0">
               <span className="font-mono text-[13px] font-medium text-[var(--color-sidebar-foreground)] truncate">
-                Dr. Sarah Mitchell
+                {user?.name ?? 'Unknown'}
               </span>
               <span className="font-mono text-[11px] text-[var(--color-muted-foreground)] truncate">
-                Program Director
+                {user?.role ?? ''}
               </span>
             </div>
           </div>
-          <ChevronsUpDown className="w-[16px] h-[16px] text-[var(--color-sidebar-foreground)] flex-shrink-0" />
+          <button
+            onClick={handleLogout}
+            className="p-[6px] rounded-[6px] hover:bg-[var(--color-sidebar-accent)] transition-colors flex-shrink-0"
+            title="Sign out"
+          >
+            <LogOut className="w-[16px] h-[16px] text-[var(--color-muted-foreground)]" />
+          </button>
         </div>
       </div>
     </div>

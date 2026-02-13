@@ -1,6 +1,8 @@
 import { Search, ChevronDown } from 'lucide-react';
+import { useAuth } from '../../auth';
 
 export default function Dashboard() {
+  const { user } = useAuth();
   return (
     <div className="flex flex-col h-full bg-background">
       {/* TopBar */}
@@ -33,10 +35,10 @@ export default function Dashboard() {
           {/* User Avatar */}
           <div className="flex items-center gap-[12px]">
             <div className="w-[36px] h-[36px] rounded-full bg-[#FACC15] flex items-center justify-center font-mono text-[13px] font-bold text-black">
-              SM
+              {user?.initials ?? '??'}
             </div>
             <div className="font-mono text-[13px] text-foreground">
-              Dr. Sarah Mitchell
+              {user?.name ?? 'Unknown'}
             </div>
           </div>
         </div>

@@ -79,7 +79,10 @@ function getMeetingsLabel(preset: PresetKey): string {
 }
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
+  if (!dateStr) return '';
+  const ymd = dateStr.substring(0, 10);
+  const d = new Date(ymd + 'T00:00:00');
+  if (isNaN(d.getTime())) return dateStr;
   return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',

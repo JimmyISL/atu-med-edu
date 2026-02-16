@@ -116,8 +116,8 @@ export default function PersonDetail() {
       department: person.department || '',
       email: person.email || '',
       phone: person.phone || '',
-      date_of_birth: person.date_of_birth || '',
-      hire_date: person.hire_date || '',
+      date_of_birth: person.date_of_birth ? person.date_of_birth.substring(0, 10) : '',
+      hire_date: person.hire_date ? person.hire_date.substring(0, 10) : '',
       office_location: person.office_location || '',
       notes: person.notes || '',
       status: person.status || 'ACTIVE',
@@ -484,7 +484,7 @@ export default function PersonDetail() {
                     <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
                       DATE OF BIRTH
                     </label>
-                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.date_of_birth || '—'}</p>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.date_of_birth ? new Date(person.date_of_birth.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
                   </div>
                   <div className="flex flex-col gap-[4px]">
                     <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
@@ -496,7 +496,7 @@ export default function PersonDetail() {
                     <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
                       DATE OF HIRE
                     </label>
-                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.hire_date || '—'}</p>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.hire_date ? new Date(person.hire_date.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
                   </div>
                   <div className="flex flex-col gap-[4px]">
                     <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
@@ -636,7 +636,7 @@ export default function PersonDetail() {
                           {meeting.meeting_title}
                         </p>
                         <p className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
-                          {meeting.meeting_date}
+                          {meeting.meeting_date ? new Date(meeting.meeting_date.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
                         </p>
                       </div>
                       <span className={`inline-flex items-center rounded-[4px] px-[8px] py-[4px] font-mono text-[11px] font-medium uppercase tracking-wide text-white ${
@@ -709,7 +709,7 @@ export default function PersonDetail() {
                           {cred.template_name}
                         </p>
                         <p className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
-                          {cred.credential_number} &middot; Issued {cred.issue_date} &middot; Expires {cred.expiry_date}
+                          {cred.credential_number} &middot; Issued {cred.issue_date ? new Date(cred.issue_date.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'} &middot; Expires {cred.expiry_date ? new Date(cred.expiry_date.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                         </p>
                       </div>
                       <span className={`inline-flex items-center rounded-[4px] px-[8px] py-[4px] font-mono text-[11px] font-medium uppercase tracking-wide text-white ${

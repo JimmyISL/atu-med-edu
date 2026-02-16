@@ -117,7 +117,10 @@ export default function ActivitiesList() {
   };
 
   const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
+    if (!dateStr) return '';
+    const ymd = dateStr.substring(0, 10);
+    const d = new Date(ymd + 'T00:00:00');
+    if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',

@@ -102,7 +102,10 @@ function getStatusColor(status: string): string {
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return '';
-  const date = new Date(dateStr + 'T00:00:00');
+  // Extract YYYY-MM-DD from either ISO datetime or plain date string
+  const ymd = dateStr.substring(0, 10);
+  const date = new Date(ymd + 'T00:00:00');
+  if (isNaN(date.getTime())) return dateStr;
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -176,9 +179,9 @@ export default function MeetingDetail() {
 
     setEditForm({
       title: meeting.title || '',
-      meeting_date: meeting.meeting_date || '',
-      start_time: meeting.start_time || '',
-      end_time: meeting.end_time || '',
+      meeting_date: meeting.meeting_date ? meeting.meeting_date.substring(0, 10) : '',
+      start_time: meeting.start_time ? meeting.start_time.substring(0, 5) : '',
+      end_time: meeting.end_time ? meeting.end_time.substring(0, 5) : '',
       location: meeting.location || '',
       subject: meeting.subject || '',
       cme_credits: meeting.cme_credits != null ? String(meeting.cme_credits) : '',

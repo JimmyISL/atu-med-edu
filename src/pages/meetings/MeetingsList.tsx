@@ -33,6 +33,14 @@ interface Person {
   [key: string]: unknown;
 }
 
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '—';
+  const ymd = dateStr.substring(0, 10);
+  const date = new Date(ymd + 'T00:00:00');
+  if (isNaN(date.getTime())) return dateStr;
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 function getStatusColor(status: string): string {
   switch (status.toUpperCase()) {
     case 'COMPLETED':
@@ -306,7 +314,7 @@ export default function MeetingsList() {
                       {meeting.course}
                     </td>
                     <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-muted-foreground)] font-mono">
-                      {meeting.meeting_date}
+                      {formatDate(meeting.meeting_date)}
                     </td>
                     <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-muted-foreground)] font-mono">
                       {meeting.time}

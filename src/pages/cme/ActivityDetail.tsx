@@ -89,7 +89,7 @@ function EditModal({
     activity_type: activity.activity_type || '',
     credits: Number(activity.credits) || 0,
     value: Number(activity.value) || 0,
-    activity_date: activity.activity_date || '',
+    activity_date: activity.activity_date ? activity.activity_date.substring(0, 10) : '',
     description: activity.description || '',
     status: activity.status || 'PENDING',
   });
@@ -624,7 +624,7 @@ export default function ActivityDetail() {
                   <div className="flex items-center gap-[8px]">
                     <Calendar className="h-[16px] w-[16px] text-[var(--color-muted-foreground)]" />
                     <p className="text-[14px] font-medium text-[var(--color-foreground)]">
-                      {activity.activity_date || 'N/A'}
+                      {activity.activity_date ? new Date(activity.activity_date.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
                     </p>
                   </div>
                 </div>

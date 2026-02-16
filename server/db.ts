@@ -3,6 +3,12 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Return DATE (1082) and TIMESTAMP (1114) / TIMESTAMPTZ (1184) as plain strings
+// instead of JavaScript Date objects to avoid timezone/formatting issues
+pg.types.setTypeParser(1082, (val: string) => val); // DATE → 'YYYY-MM-DD'
+pg.types.setTypeParser(1114, (val: string) => val); // TIMESTAMP
+pg.types.setTypeParser(1184, (val: string) => val); // TIMESTAMPTZ
+
 // Validate required env vars at startup
 const requiredEnv = ['DB_PASSWORD'];
 for (const key of requiredEnv) {

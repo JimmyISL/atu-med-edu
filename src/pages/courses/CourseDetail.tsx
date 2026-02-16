@@ -128,8 +128,8 @@ export default function CourseDetail() {
       course_type: course.course_type || 'Required',
       duration: course.duration || '',
       department: course.department || '',
-      start_date: course.start_date || '',
-      end_date: course.end_date || '',
+      start_date: course.start_date ? course.start_date.substring(0, 10) : '',
+      end_date: course.end_date ? course.end_date.substring(0, 10) : '',
       prerequisites: course.prerequisites || '',
       materials_required: course.materials_required || '',
       notes: course.notes || '',
@@ -806,7 +806,7 @@ export default function CourseDetail() {
                       {meeting.title}
                     </div>
                     <div className="font-mono text-[11px] text-[var(--color-muted-foreground)] mt-[2px]">
-                      {meeting.meeting_date} • {meeting.start_time} - {meeting.end_time}
+                      {meeting.meeting_date ? new Date(meeting.meeting_date.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''} • {meeting.start_time} - {meeting.end_time}
                     </div>
                   </div>
                 ))}

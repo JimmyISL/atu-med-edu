@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Users, TrendingUp, DollarSign, Award, CheckCircle, XCircle, Pencil, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Calendar, Users, TrendingUp, DollarSign, Award, X } from 'lucide-react';
 import { api } from '../../api';
 
 interface Participant {
@@ -24,16 +24,6 @@ interface Activity {
   description: string;
   status: string;
   participants: Participant[];
-}
-
-/* ── Helpers ──────────────────────────────────────────────── */
-
-function statusBadgeClasses(status: string | null | undefined): string {
-  const s = (status || 'PENDING').toUpperCase();
-  if (s === 'APPROVED' || s === 'COMPLETED') return 'bg-green-950/40 text-green-400 ring-1 ring-green-500/30';
-  if (s === 'REJECTED') return 'bg-red-950/40 text-red-400 ring-1 ring-red-500/30';
-  // PENDING or anything else
-  return 'bg-amber-950/40 text-amber-400 ring-1 ring-amber-500/30';
 }
 
 /* ── Confirm Dialog ───────────────────────────────────────── */
@@ -390,74 +380,70 @@ export default function ActivityDetail() {
         />
       )}
 
-      {/* TopBar */}
-      <div className="border-b border-[var(--color-border)] bg-[var(--color-background)] px-[32px] py-[24px]">
-        <button
-          onClick={() => navigate('/cme')}
-          className="mb-[12px] flex items-center gap-[6px] text-[14px] text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]"
-        >
-          <ArrowLeft className="h-[16px] w-[16px]" />
-          Back to Activities
-        </button>
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-[12px]">
-            <div>
-              <h1 className="font-headline text-[24px] font-bold tracking-tight text-[var(--color-foreground)]">
-                {activity.name}
-              </h1>
-              <div className="mt-[6px] flex items-center gap-[8px]">
-                <span className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
-                  CME-{activity.id}
-                </span>
-                <span
-                  className={`inline-flex rounded-[6px] px-[8px] py-[2px] font-mono text-[11px] font-semibold uppercase ${statusBadgeClasses(activity.status)}`}
-                >
-                  {activity.status || 'PENDING'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-[8px]">
-            {isPending && (
-              <>
-                <button
-                  onClick={handleApprove}
-                  disabled={actionLoading}
-                  className="flex items-center gap-[6px] rounded-[8px] bg-green-600 px-[14px] py-[8px] font-mono text-[13px] font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
-                >
-                  <CheckCircle className="h-[15px] w-[15px]" />
-                  APPROVE
-                </button>
-                <button
-                  onClick={() => setShowRejectConfirm(true)}
-                  disabled={actionLoading}
-                  className="flex items-center gap-[6px] rounded-[8px] bg-red-600 px-[14px] py-[8px] font-mono text-[13px] font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
-                >
-                  <XCircle className="h-[15px] w-[15px]" />
-                  REJECT
-                </button>
-              </>
-            )}
-            <button
-              onClick={() => setShowEditModal(true)}
-              disabled={actionLoading}
-              className="flex items-center gap-[6px] rounded-[8px] border border-[var(--color-border)] bg-[var(--color-secondary)] px-[14px] py-[8px] font-mono text-[13px] font-semibold text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-border)] disabled:opacity-50"
-            >
-              <Pencil className="h-[15px] w-[15px]" />
-              EDIT
-            </button>
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={actionLoading}
-              className="flex items-center gap-[6px] rounded-[8px] border border-red-500/30 bg-red-950/40 px-[14px] py-[8px] font-mono text-[13px] font-semibold text-red-400 transition-colors hover:bg-red-900/50 disabled:opacity-50"
-            >
-              <Trash2 className="h-[15px] w-[15px]" />
-              DELETE
-            </button>
-          </div>
+      {/* Top Bar */}
+      <div className="border-b border-[var(--color-border)] bg-[var(--color-background)] px-[32px] py-[24px] flex items-center justify-between">
+        <div className="flex items-center gap-[16px]">
+          <button
+            onClick={() => navigate('/cme')}
+            className="inline-flex items-center gap-[6px] font-mono text-[13px] text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]"
+          >
+            <ArrowLeft className="h-[16px] w-[16px]" />
+            Back to Activities
+          </button>
         </div>
+        <div className="flex items-center gap-[12px]">
+          {isPending && (
+            <>
+              <button
+                onClick={handleApprove}
+                disabled={actionLoading}
+                className="rounded-[6px] border border-green-300 bg-green-50 px-[16px] py-[8px] font-mono text-[13px] font-medium text-green-600 transition-colors hover:bg-green-100 disabled:opacity-50"
+              >
+                APPROVE
+              </button>
+              <button
+                onClick={() => setShowRejectConfirm(true)}
+                disabled={actionLoading}
+                className="rounded-[6px] border border-red-300 bg-red-50 px-[16px] py-[8px] font-mono text-[13px] font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50"
+              >
+                REJECT
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={actionLoading}
+            className="rounded-[6px] border border-red-300 bg-red-50 px-[16px] py-[8px] font-mono text-[13px] font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50"
+          >
+            DELETE
+          </button>
+          <button
+            onClick={() => setShowEditModal(true)}
+            disabled={actionLoading}
+            className="px-[16px] py-[8px] border border-[var(--color-border)] rounded-[6px] font-mono text-[13px] font-bold tracking-[0.05em] text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-background)] disabled:opacity-50"
+          >
+            EDIT
+          </button>
+        </div>
+      </div>
+
+      {/* Title sub-bar */}
+      <div className="border-b border-[var(--color-border)] bg-[var(--color-background)] px-[32px] py-[16px]">
+        <h1 className="font-headline text-[28px] font-bold text-[var(--color-foreground)]">
+          {activity.name}
+        </h1>
+        <p className="text-[var(--color-muted-foreground)] text-[14px] mt-[4px]">
+          CME-{String(activity.id).padStart(4, '0')} &bull;{' '}
+          <span className={`inline-flex px-[8px] py-[2px] rounded-[4px] text-[12px] font-medium font-mono ${
+            (activity.status || 'PENDING').toUpperCase() === 'APPROVED' || (activity.status || 'PENDING').toUpperCase() === 'COMPLETED'
+              ? 'text-green-600 bg-green-50'
+              : (activity.status || 'PENDING').toUpperCase() === 'REJECTED'
+                ? 'text-red-600 bg-red-50'
+                : 'text-amber-600 bg-amber-50'
+          }`}>
+            {(activity.status || 'PENDING').toUpperCase()}
+          </span>
+        </p>
       </div>
 
       {/* Main Content */}
@@ -525,10 +511,10 @@ export default function ActivityDetail() {
                       </td>
                       <td className="py-[12px]">
                         <span
-                          className={`inline-flex rounded-[6px] px-[8px] py-[4px] text-[12px] font-semibold uppercase ${
+                          className={`inline-flex px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium font-mono ${
                             participant.verified
-                              ? 'bg-green-950/40 text-green-400 ring-1 ring-green-500/30'
-                              : 'bg-amber-950/40 text-amber-400 ring-1 ring-amber-500/30'
+                              ? 'text-green-600 bg-green-50'
+                              : 'text-amber-600 bg-amber-50'
                           }`}
                         >
                           {participant.verified ? 'VERIFIED' : 'PENDING'}
@@ -647,9 +633,15 @@ export default function ActivityDetail() {
                     STATUS
                   </p>
                   <span
-                    className={`inline-flex rounded-[6px] px-[8px] py-[4px] font-mono text-[12px] font-semibold uppercase ${statusBadgeClasses(activity.status)}`}
+                    className={`inline-flex px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium font-mono ${
+                      (activity.status || 'PENDING').toUpperCase() === 'APPROVED' || (activity.status || 'PENDING').toUpperCase() === 'COMPLETED'
+                        ? 'text-green-600 bg-green-50'
+                        : (activity.status || 'PENDING').toUpperCase() === 'REJECTED'
+                          ? 'text-red-600 bg-red-50'
+                          : 'text-amber-600 bg-amber-50'
+                    }`}
                   >
-                    {activity.status || 'PENDING'}
+                    {(activity.status || 'PENDING').toUpperCase()}
                   </span>
                 </div>
               </div>

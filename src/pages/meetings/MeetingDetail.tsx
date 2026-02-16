@@ -128,6 +128,7 @@ export default function MeetingDetail() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState('');
   const [people, setPeople] = useState<Person[]>([]);
   const [courses, setCourses] = useState<CourseOption[]>([]);
   const [editForm, setEditForm] = useState<EditForm>({
@@ -188,6 +189,7 @@ export default function MeetingDetail() {
       presenter_id: meeting.presenter_id != null ? String(meeting.presenter_id) : '',
       course_id: meeting.course_id != null ? String(meeting.course_id) : '',
     });
+    setEditError('');
     setIsEditing(true);
   };
 
@@ -197,14 +199,17 @@ export default function MeetingDetail() {
 
   const handleSave = async () => {
     if (!id) return;
+    setEditError('');
+    if (!editForm.title.trim()) { setEditError('Meeting name is required.'); return; }
+    if (!editForm.meeting_date) { setEditError('Date is required.'); return; }
     setSaving(true);
     try {
       await api.meetings.update(Number(id), {
         title: editForm.title,
         course_id: editForm.course_id ? Number(editForm.course_id) : null,
         meeting_date: editForm.meeting_date,
-        start_time: editForm.start_time,
-        end_time: editForm.end_time,
+        start_time: editForm.start_time || null,
+        end_time: editForm.end_time || null,
         location: editForm.location,
         subject: editForm.subject,
         presenter_id: editForm.presenter_id ? Number(editForm.presenter_id) : null,
@@ -215,9 +220,10 @@ export default function MeetingDetail() {
         status: editForm.status,
       });
       setIsEditing(false);
+      setEditError('');
       fetchMeeting();
-    } catch (err) {
-      console.error('Failed to update meeting:', err);
+    } catch (err: any) {
+      setEditError(err.message || 'Failed to update meeting.');
     } finally {
       setSaving(false);
     }
@@ -383,6 +389,12 @@ export default function MeetingDetail() {
               Edit Meeting
             </h2>
 
+            {editError && (
+              <div className="mb-[16px] rounded-[6px] border border-red-300 bg-red-50 px-[16px] py-[12px] text-[13px] font-mono text-red-600">
+                {editError}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-x-[24px] gap-y-[16px]">
               <div className="col-span-2 flex flex-col gap-[4px]">
                 <label className={labelCls}>TITLE</label>
@@ -490,7 +502,7 @@ export default function MeetingDetail() {
                   onChange={(e) => handleEditChange('course_id', e.target.value)}
                   className={inputCls}
                 >
-                  <option value="">Select course</option>
+                  <option value="">None (no course)</option>
                   {courses.map((c) => (
                     <option key={c.id} value={c.id}>{c.course_number} - {c.name}</option>
                   ))}

@@ -2,6 +2,9 @@
 -- Replace all demo data with real ATU data from Excel exports
 -- People: T-Personal (2).xlsx  |  Meetings: T-ATU-Meeting.xlsx
 
+-- ── Step 0: Widen people.title column (was VARCHAR(10), real data has longer titles) ──
+ALTER TABLE people ALTER COLUMN title TYPE VARCHAR(50);
+
 -- ── Step 1: Clean all existing data ──
 DELETE FROM issued_credentials;
 DELETE FROM credential_templates;

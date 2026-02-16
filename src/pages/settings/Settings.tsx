@@ -180,15 +180,15 @@ export default function Settings() {
     return (
       <button
         onClick={onChange}
-        className={`relative h-[24px] w-[44px] rounded-full transition-colors ${
+        className={`relative flex-shrink-0 h-[24px] w-[44px] rounded-full cursor-pointer transition-colors ${
           checked ? 'bg-[#FACC15]' : 'bg-[var(--color-border)]'
         }`}
       >
         <span
-          className={`absolute top-[2px] h-[20px] w-[20px] rounded-full bg-white shadow-sm transition-transform ${
+          className={`absolute left-0 top-[2px] h-[20px] w-[20px] rounded-full bg-white shadow-sm transition-transform duration-200 ${
             checked ? 'translate-x-[22px]' : 'translate-x-[2px]'
           }`}
-        ></span>
+        />
       </button>
     );
   };

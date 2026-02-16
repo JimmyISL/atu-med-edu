@@ -36,7 +36,7 @@ router.get('/', async (req, res) => {
 
     const result = await pool.query(
       `SELECT id, title, first_name, last_name, role, department, email, phone, status, is_complete,
-              title || ' ' || first_name || ' ' || last_name AS name
+              TRIM(COALESCE(title, '') || ' ' || first_name || ' ' || last_name) AS name
        FROM people ${where}
        ORDER BY last_name, first_name
        LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
@@ -84,7 +84,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
-      `SELECT *, title || ' ' || first_name || ' ' || last_name AS name FROM people WHERE id = $1`,
+      `SELECT *, TRIM(COALESCE(title, '') || ' ' || first_name || ' ' || last_name) AS name FROM people WHERE id = $1`,
       [id]
     );
     if (result.rows.length === 0) {

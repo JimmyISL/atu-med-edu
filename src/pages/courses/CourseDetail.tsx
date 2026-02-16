@@ -217,13 +217,13 @@ export default function CourseDetail() {
     );
   }
 
-  const completedCount = course.attendees.filter(a => a.status === 'Completed').length;
-  const enrolledCount = course.attendees.length;
+  const completedCount = (course.attendees || []).filter(a => a.status === 'Completed').length;
+  const enrolledCount = (course.attendees || []).length;
   const passRate = enrolledCount > 0 ? Math.round((completedCount / enrolledCount) * 100) : 0;
 
-  const statusColor = course.status === 'Active'
+  const statusColor = (course.status || '') === 'Active'
     ? 'bg-green-500/20 text-green-600'
-    : course.status === 'Completed'
+    : (course.status || '') === 'Completed'
       ? 'bg-blue-500/20 text-blue-600'
       : 'bg-gray-500/20 text-gray-500';
 
@@ -524,7 +524,7 @@ export default function CourseDetail() {
                     STATUS
                   </div>
                   <span className={`inline-block px-[8px] py-[2px] ${statusColor} rounded-[4px] text-[11px] font-mono font-bold tracking-[0.05em]`}>
-                    {course.status.toUpperCase()}
+                    {(course.status || 'DRAFT').toUpperCase()}
                   </span>
                 </div>
               </div>
@@ -556,7 +556,7 @@ export default function CourseDetail() {
                     CME TYPE
                   </div>
                   <span className="inline-block px-[8px] py-[2px] bg-[#FACC15]/20 text-[#FACC15] rounded-[4px] text-[11px] font-mono font-bold tracking-[0.05em]">
-                    {course.cme_type.toUpperCase()}
+                    {(course.cme_type || 'Category 1').toUpperCase()}
                   </span>
                 </div>
                 <div>
@@ -564,7 +564,7 @@ export default function CourseDetail() {
                     CME TOTAL
                   </div>
                   <div className="font-mono text-[13px] text-[var(--color-foreground)]">
-                    {course.cme_total.toFixed(1)}
+                    {(Number(course.cme_total) || 0).toFixed(1)}
                   </div>
                 </div>
               </div>
@@ -584,7 +584,7 @@ export default function CourseDetail() {
                     VALUE TOTAL
                   </div>
                   <div className="font-mono text-[13px] text-[var(--color-foreground)]">
-                    ${course.value_total.toLocaleString()}
+                    ${(Number(course.value_total) || 0).toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -713,7 +713,7 @@ export default function CourseDetail() {
                   CME TOTAL
                 </div>
                 <div className="font-headline text-[28px] font-bold text-[var(--color-foreground)]">
-                  {course.cme_total.toFixed(1)}
+                  {(Number(course.cme_total) || 0).toFixed(1)}
                 </div>
               </div>
 
@@ -722,7 +722,7 @@ export default function CourseDetail() {
                   VALUE TOTAL
                 </div>
                 <div className="font-headline text-[28px] font-bold text-[var(--color-foreground)]">
-                  ${course.value_total.toLocaleString()}
+                  ${(Number(course.value_total) || 0).toLocaleString()}
                 </div>
               </div>
 
@@ -766,12 +766,12 @@ export default function CourseDetail() {
             {/* Student List */}
             {activeTab === 'enrolled' && (
               <div className="space-y-[12px]">
-                {course.attendees.length === 0 && (
+                {(course.attendees || []).length === 0 && (
                   <div className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
                     No enrolled students.
                   </div>
                 )}
-                {course.attendees.map((attendee) => (
+                {(course.attendees || []).map((attendee) => (
                   <div
                     key={attendee.person_id}
                     onClick={() => navigate(`/hr/${attendee.person_id}`)}
@@ -791,12 +791,12 @@ export default function CourseDetail() {
             {/* Subjects Tab Content */}
             {activeTab === 'subjects' && (
               <div className="space-y-[12px]">
-                {course.meetings.length === 0 && (
+                {(course.meetings || []).length === 0 && (
                   <div className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
                     No meetings scheduled.
                   </div>
                 )}
-                {course.meetings.map((meeting) => (
+                {(course.meetings || []).map((meeting) => (
                   <div
                     key={meeting.id}
                     onClick={() => navigate(`/meetings/${meeting.id}`)}

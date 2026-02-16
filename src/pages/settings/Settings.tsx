@@ -119,25 +119,34 @@ export default function Settings() {
 
   // Save handler
   const handleSave = async () => {
-    if (!personId) {
-      setError('No profile record found. Cannot save.');
-      return;
-    }
     try {
       setSaving(true);
       setError(null);
       setSuccessMsg(null);
-      await api.people.update(personId, {
+
+      const payload = {
         title: form.title,
         first_name: form.first_name,
         last_name: form.last_name,
-        email: form.email,
+        email: form.email || user?.email || '',
         phone: form.phone,
         role: form.role,
         department: form.department,
-      });
-      setOriginalData({ ...form });
-      setSuccessMsg('Profile updated successfully.');
+      };
+
+      if (!personId) {
+        // No existing record -- create a new person
+        const created = await api.people.create(payload);
+        setPersonId(created.id);
+        setOriginalData({ ...form, email: payload.email });
+        setForm(prev => ({ ...prev, email: payload.email }));
+        setSuccessMsg('Profile created and saved!');
+      } else {
+        // Existing record -- update it
+        await api.people.update(personId, payload);
+        setOriginalData({ ...form });
+        setSuccessMsg('Profile updated successfully.');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to save changes');
     } finally {

@@ -28,8 +28,8 @@ interface Activity {
 
 /* ── Helpers ──────────────────────────────────────────────── */
 
-function statusBadgeClasses(status: string): string {
-  const s = status.toUpperCase();
+function statusBadgeClasses(status: string | null | undefined): string {
+  const s = (status || 'PENDING').toUpperCase();
   if (s === 'APPROVED' || s === 'COMPLETED') return 'bg-green-950/40 text-green-400 ring-1 ring-green-500/30';
   if (s === 'REJECTED') return 'bg-red-950/40 text-red-400 ring-1 ring-red-500/30';
   // PENDING or anything else
@@ -94,14 +94,14 @@ function EditModal({
   onCancel: () => void;
 }) {
   const [form, setForm] = useState({
-    name: activity.name,
-    provider: activity.provider,
-    activity_type: activity.activity_type,
-    credits: activity.credits,
-    value: activity.value,
-    activity_date: activity.activity_date,
+    name: activity.name || '',
+    provider: activity.provider || '',
+    activity_type: activity.activity_type || '',
+    credits: Number(activity.credits) || 0,
+    value: Number(activity.value) || 0,
+    activity_date: activity.activity_date || '',
     description: activity.description || '',
-    status: activity.status,
+    status: activity.status || 'PENDING',
   });
   const [saving, setSaving] = useState(false);
 
@@ -354,10 +354,10 @@ export default function ActivityDetail() {
     );
   }
 
-  const totalAttendees = activity.participants.length;
-  const totalValue = activity.value;
-  const creditsAwarded = activity.credits;
-  const isPending = activity.status.toUpperCase() === 'PENDING';
+  const totalAttendees = (activity.participants || []).length;
+  const totalValue = Number(activity.value) || 0;
+  const creditsAwarded = Number(activity.credits) || 0;
+  const isPending = (activity.status || 'PENDING').toUpperCase() === 'PENDING';
 
   return (
     <div className="flex flex-col h-full">
@@ -412,7 +412,7 @@ export default function ActivityDetail() {
                 <span
                   className={`inline-flex rounded-[6px] px-[8px] py-[2px] font-mono text-[11px] font-semibold uppercase ${statusBadgeClasses(activity.status)}`}
                 >
-                  {activity.status}
+                  {activity.status || 'PENDING'}
                 </span>
               </div>
             </div>
@@ -501,7 +501,7 @@ export default function ActivityDetail() {
                   </tr>
                 </thead>
                 <tbody>
-                  {activity.participants.map((participant) => (
+                  {(activity.participants || []).map((participant) => (
                     <tr
                       key={participant.person_id}
                       className="border-b border-[var(--color-border)] last:border-0"
@@ -518,7 +518,7 @@ export default function ActivityDetail() {
                         {participant.department}
                       </td>
                       <td className="py-[12px] font-mono text-[14px] text-[var(--color-foreground)]">
-                        {participant.credits_earned.toFixed(1)}
+                        {(Number(participant.credits_earned) || 0).toFixed(1)}
                       </td>
                       <td className="py-[12px] text-[14px] text-[var(--color-muted-foreground)]">
                         {participant.date_earned}
@@ -599,7 +599,7 @@ export default function ActivityDetail() {
                     <p className="font-mono text-[20px] font-bold text-[var(--color-foreground)]">
                       {totalAttendees > 0
                         ? Math.round(
-                            (activity.participants.filter((p) => p.verified).length /
+                            ((activity.participants || []).filter((p) => p.verified).length /
                               totalAttendees) *
                               100
                           )
@@ -622,14 +622,14 @@ export default function ActivityDetail() {
                     CME TYPE
                   </p>
                   <span className="inline-flex rounded-[6px] bg-[var(--color-brand-accent)] px-[8px] py-[4px] text-[12px] font-semibold uppercase text-[var(--color-foreground)]">
-                    {activity.activity_type}
+                    {activity.activity_type || 'N/A'}
                   </span>
                 </div>
                 <div>
                   <p className="mb-[4px] text-[12px] uppercase tracking-wide text-[var(--color-muted-foreground)]">
                     PROVIDER
                   </p>
-                  <p className="text-[14px] font-medium text-[var(--color-foreground)]">{activity.provider}</p>
+                  <p className="text-[14px] font-medium text-[var(--color-foreground)]">{activity.provider || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="mb-[4px] text-[12px] uppercase tracking-wide text-[var(--color-muted-foreground)]">
@@ -638,7 +638,7 @@ export default function ActivityDetail() {
                   <div className="flex items-center gap-[8px]">
                     <Calendar className="h-[16px] w-[16px] text-[var(--color-muted-foreground)]" />
                     <p className="text-[14px] font-medium text-[var(--color-foreground)]">
-                      {activity.activity_date}
+                      {activity.activity_date || 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -649,7 +649,7 @@ export default function ActivityDetail() {
                   <span
                     className={`inline-flex rounded-[6px] px-[8px] py-[4px] font-mono text-[12px] font-semibold uppercase ${statusBadgeClasses(activity.status)}`}
                   >
-                    {activity.status}
+                    {activity.status || 'PENDING'}
                   </span>
                 </div>
               </div>

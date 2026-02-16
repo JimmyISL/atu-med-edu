@@ -32,7 +32,7 @@ interface DashboardData {
   dateFiltered?: boolean;
 }
 
-type PresetKey = 'today' | 'week' | 'month' | 'custom';
+type PresetKey = 'all' | 'today' | 'week' | 'month' | 'custom';
 
 function toLocalDateString(d: Date): string {
   const year = d.getFullYear();
@@ -65,6 +65,8 @@ function getTodayRange(): { from: string; to: string } {
 
 function getMeetingsLabel(preset: PresetKey): string {
   switch (preset) {
+    case 'all':
+      return 'ALL MEETINGS';
     case 'today':
       return 'MEETINGS TODAY';
     case 'week':
@@ -151,14 +153,15 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Date range filter state - default to "This Week"
-  const [activePreset, setActivePreset] = useState<PresetKey>('week');
+  // Date range filter state - default to "All"
+  const [activePreset, setActivePreset] = useState<PresetKey>('all');
   const [fromDate, setFromDate] = useState(() => getWeekRange().from);
   const [toDate, setToDate] = useState(() => getWeekRange().to);
 
-  const fetchDashboard = useCallback((from: string, to: string) => {
+  const fetchDashboard = useCallback((from?: string, to?: string) => {
     setLoading(true);
-    api.dashboard({ from, to }).then((res: DashboardData) => {
+    const params = from && to ? { from, to } : undefined;
+    (params ? api.dashboard(params) : api.dashboard()).then((res: DashboardData) => {
       setData(res);
       setLoading(false);
     }).catch(() => {
@@ -166,13 +169,22 @@ export default function Dashboard() {
     });
   }, []);
 
-  // Initial load with "This Week" default
+  // Initial load with "All" default (no date params)
   useEffect(() => {
-    fetchDashboard(fromDate, toDate);
+    if (activePreset === 'all') {
+      fetchDashboard();
+    } else {
+      fetchDashboard(fromDate, toDate);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePreset = (preset: PresetKey) => {
+    if (preset === 'all') {
+      setActivePreset('all');
+      fetchDashboard();
+      return;
+    }
     let range: { from: string; to: string };
     switch (preset) {
       case 'today':
@@ -242,6 +254,7 @@ export default function Dashboard() {
 
         {/* Preset Buttons */}
         {([
+          { key: 'all' as PresetKey, label: 'All' },
           { key: 'today' as PresetKey, label: 'Today' },
           { key: 'week' as PresetKey, label: 'This Week' },
           { key: 'month' as PresetKey, label: 'This Month' },

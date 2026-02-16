@@ -6,12 +6,12 @@ import { api } from '../../api';
 interface Activity {
   id: number;
   name: string;
-  provider: string;
-  activity_type: string;
-  credits: number;
-  value: number;
-  activity_date: string;
-  status: string;
+  provider: string | null;
+  activity_type: string | null;
+  credits: number | null;
+  value: number | null;
+  activity_date: string | null;
+  status: string | null;
 }
 
 const INITIAL_FORM = {
@@ -228,27 +228,27 @@ export default function ActivitiesList() {
                         {activity.name}
                       </td>
                       <td className="px-[24px] py-[16px] text-[14px] text-[var(--color-muted-foreground)]">
-                        {activity.provider}
+                        {activity.provider || '\u2014'}
                       </td>
                       <td className="px-[24px] py-[16px] text-[14px] text-[var(--color-muted-foreground)]">
-                        {activity.activity_type}
+                        {activity.activity_type || '\u2014'}
                       </td>
                       <td className="px-[24px] py-[16px] font-mono text-[14px] text-[var(--color-foreground)]">
-                        {activity.credits.toFixed(1)}
+                        {(Number(activity.credits) || 0).toFixed(1)}
                       </td>
                       <td className="px-[24px] py-[16px] font-mono text-[14px] text-[var(--color-foreground)]">
-                        ${activity.value.toLocaleString()}
+                        ${(Number(activity.value) || 0).toLocaleString()}
                       </td>
                       <td className="px-[24px] py-[16px] text-[14px] text-[var(--color-muted-foreground)]">
-                        {formatDate(activity.activity_date)}
+                        {activity.activity_date ? formatDate(activity.activity_date) : '\u2014'}
                       </td>
                       <td className="px-[24px] py-[16px]">
                         <span
                           className={`inline-flex rounded-[6px] px-[8px] py-[4px] text-[12px] font-semibold uppercase ${getStatusColor(
-                            activity.status
+                            (activity.status || '').toUpperCase()
                           )}`}
                         >
-                          {activity.status}
+                          {(activity.status || 'UNKNOWN').toUpperCase()}
                         </span>
                       </td>
                     </tr>

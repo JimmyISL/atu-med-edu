@@ -333,7 +333,6 @@ export default function MeetingDetail() {
   }
 
   const attendees = meeting.attendees || [];
-  const presentCount = attendees.filter((a) => a.attended === true).length;
   const evaluatedCount = attendees.filter((a) => a.attended !== null).length;
   const cmeTypeLabel = meeting.course_cme_type || 'Category 1';
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { api } from '../../api';
 
@@ -27,13 +27,14 @@ const INITIAL_FORM = {
 
 export default function ActivitiesList() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'all');
   const [activities, setActivities] = useState<Activity[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const limit = 20;
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('q') || '');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
@@ -78,6 +79,15 @@ export default function ActivitiesList() {
     setSearch(value);
     setPage(1);
   };
+
+  // Sync state to URL search params
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (page > 1) params.page = String(page);
+    if (activeTab !== 'all') params.tab = activeTab;
+    if (search.trim()) params.q = search.trim();
+    setSearchParams(params, { replace: true });
+  }, [page, activeTab, search, setSearchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

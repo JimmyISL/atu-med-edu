@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Plus, X } from 'lucide-react';
 import { api } from '../../api';
 
@@ -74,14 +74,15 @@ const initialFormState = {
 
 export default function MeetingsList() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'all');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('q') || '');
   const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const limit = 20;
   const [loading, setLoading] = useState(false);
 
@@ -92,6 +93,15 @@ export default function MeetingsList() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync state to URL search params
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (page > 1) params.page = String(page);
+    if (activeTab !== 'all') params.tab = activeTab;
+    if (debouncedSearch) params.q = debouncedSearch;
+    setSearchParams(params, { replace: true });
+  }, [page, activeTab, debouncedSearch, setSearchParams]);
 
   // Debounce search input by 300ms
   useEffect(() => {

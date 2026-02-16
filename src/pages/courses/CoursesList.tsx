@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Plus, X } from 'lucide-react';
 import { api } from '../../api';
 
@@ -85,13 +85,14 @@ function getStatusColor(status: string): string {
 
 export default function CoursesList() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'archived'>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'archived'>((searchParams.get('tab') as 'all' | 'active' | 'archived') || 'all');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('q') || '');
   const [courses, setCourses] = useState<Course[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const limit = 20;
   const [people, setPeople] = useState<Person[]>([]);
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -114,6 +115,15 @@ export default function CoursesList() {
       }
     };
   }, [searchQuery]);
+
+  // Sync state to URL search params
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (page > 1) params.page = String(page);
+    if (activeTab !== 'all') params.tab = activeTab;
+    if (debouncedSearch) params.q = debouncedSearch;
+    setSearchParams(params, { replace: true });
+  }, [page, activeTab, debouncedSearch, setSearchParams]);
 
   const fetchCourses = useCallback(async () => {
     const params: Record<string, string> = {

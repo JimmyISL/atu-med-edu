@@ -101,11 +101,17 @@ export default function CertificatePreview() {
 
         {/* Action Buttons */}
         <div className="mx-auto mt-[32px] flex max-w-[800px] items-center justify-center gap-[16px]">
-          <button className="flex items-center gap-[8px] rounded-[8px] bg-[var(--color-primary)] px-[24px] py-[12px] text-[14px] font-medium text-[var(--color-primary-foreground)] transition-colors hover:opacity-90">
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-[8px] rounded-[8px] bg-[var(--color-primary)] px-[24px] py-[12px] text-[14px] font-medium text-[var(--color-primary-foreground)] transition-colors hover:opacity-90"
+          >
             <Download className="h-[16px] w-[16px]" />
             DOWNLOAD PDF
           </button>
-          <button className="flex items-center gap-[8px] rounded-[8px] border border-[var(--color-border)] bg-[var(--color-card)] px-[24px] py-[12px] text-[14px] font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-secondary)]">
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-[8px] rounded-[8px] border border-[var(--color-border)] bg-[var(--color-card)] px-[24px] py-[12px] text-[14px] font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-secondary)]"
+          >
             <Printer className="h-[16px] w-[16px]" />
             PRINT
           </button>

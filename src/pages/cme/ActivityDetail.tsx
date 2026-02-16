@@ -1,66 +1,462 @@
-import { Calendar, Clock, Users, TrendingUp, DollarSign, Award } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Calendar, Users, TrendingUp, DollarSign, Award, CheckCircle, XCircle, Pencil, Trash2, X } from 'lucide-react';
+import { api } from '../../api';
 
-const subjectScores = [
-  { subject: 'Cardiac Pathophysiology', score: 92, value: 150 },
-  { subject: 'Clinical Interventions', score: 85, value: 125 },
-  { subject: 'Patient Management', score: 88, value: 125 },
-];
+interface Participant {
+  person_id: number;
+  name: string;
+  email: string;
+  department: string;
+  credits_earned: number;
+  date_earned: string;
+  verified: boolean;
+}
 
-const attendees = [
-  {
-    id: 1,
-    name: 'Dr. James Wilson',
-    role: 'Cardiologist',
-    credits: 24.0,
-    engagement: 95,
-    status: 'COMPLETED',
-  },
-  {
-    id: 2,
-    name: 'Dr. Sarah Chen',
-    role: 'Internal Medicine',
-    credits: 24.0,
-    engagement: 88,
-    status: 'COMPLETED',
-  },
-  {
-    id: 3,
-    name: 'Dr. Michael Brown',
-    role: 'Resident',
-    credits: 24.0,
-    engagement: 92,
-    status: 'COMPLETED',
-  },
-  {
-    id: 4,
-    name: 'Dr. Emily Davis',
-    role: 'Cardiologist',
-    credits: 24.0,
-    engagement: 85,
-    status: 'IN PROGRESS',
-  },
-  {
-    id: 5,
-    name: 'Dr. Robert Taylor',
-    role: 'Fellow',
-    credits: 18.0,
-    engagement: 78,
-    status: 'IN PROGRESS',
-  },
-];
+interface Activity {
+  id: number;
+  name: string;
+  provider: string;
+  activity_type: string;
+  credits: number;
+  value: number;
+  activity_date: string;
+  description: string;
+  status: string;
+  participants: Participant[];
+}
+
+/* ── Helpers ──────────────────────────────────────────────── */
+
+function statusBadgeClasses(status: string): string {
+  const s = status.toUpperCase();
+  if (s === 'APPROVED' || s === 'COMPLETED') return 'bg-green-950/40 text-green-400 ring-1 ring-green-500/30';
+  if (s === 'REJECTED') return 'bg-red-950/40 text-red-400 ring-1 ring-red-500/30';
+  // PENDING or anything else
+  return 'bg-amber-950/40 text-amber-400 ring-1 ring-amber-500/30';
+}
+
+/* ── Confirm Dialog ───────────────────────────────────────── */
+
+function ConfirmDialog({
+  title,
+  message,
+  confirmLabel,
+  confirmColor,
+  onConfirm,
+  onCancel,
+}: {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  confirmColor: 'red' | 'green';
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const btnClass =
+    confirmColor === 'red'
+      ? 'bg-red-600 hover:bg-red-700 text-white'
+      : 'bg-green-600 hover:bg-green-700 text-white';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-[420px] rounded-[12px] border border-[var(--color-border)] bg-[var(--color-card)] p-[24px] shadow-xl">
+        <h3 className="font-headline text-[18px] font-bold text-[var(--color-foreground)]">{title}</h3>
+        <p className="mt-[8px] text-[14px] text-[var(--color-muted-foreground)]">{message}</p>
+        <div className="mt-[20px] flex justify-end gap-[12px]">
+          <button
+            onClick={onCancel}
+            className="rounded-[8px] border border-[var(--color-border)] bg-[var(--color-secondary)] px-[16px] py-[8px] font-mono text-[13px] font-semibold text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-border)]"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`rounded-[8px] px-[16px] py-[8px] font-mono text-[13px] font-semibold transition-colors ${btnClass}`}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Edit Modal ───────────────────────────────────────────── */
+
+function EditModal({
+  activity,
+  onSave,
+  onCancel,
+}: {
+  activity: Activity;
+  onSave: (data: Partial<Activity>) => void;
+  onCancel: () => void;
+}) {
+  const [form, setForm] = useState({
+    name: activity.name,
+    provider: activity.provider,
+    activity_type: activity.activity_type,
+    credits: activity.credits,
+    value: activity.value,
+    activity_date: activity.activity_date,
+    description: activity.description || '',
+    status: activity.status,
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleChange = (field: string, val: string | number) => {
+    setForm((prev) => ({ ...prev, [field]: val }));
+  };
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    await onSave(form);
+    setSaving(false);
+  };
+
+  const inputClass =
+    'w-full rounded-[8px] border border-[var(--color-border)] bg-[var(--color-background)] px-[12px] py-[8px] font-mono text-[13px] text-[var(--color-foreground)] outline-none focus:ring-2 focus:ring-[#FACC15]/40';
+
+  const labelClass = 'block mb-[4px] text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-[560px] rounded-[12px] border border-[var(--color-border)] bg-[var(--color-card)] shadow-xl">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-[24px] py-[16px]">
+          <h3 className="font-headline text-[18px] font-bold text-[var(--color-foreground)]">Edit Activity</h3>
+          <button
+            onClick={onCancel}
+            className="rounded-[6px] p-[4px] text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-secondary)] hover:text-[var(--color-foreground)]"
+          >
+            <X className="h-[18px] w-[18px]" />
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div className="max-h-[60vh] overflow-y-auto px-[24px] py-[20px]">
+          <div className="grid grid-cols-2 gap-[16px]">
+            {/* Name - full width */}
+            <div className="col-span-2">
+              <label className={labelClass}>Name</label>
+              <input className={inputClass} value={form.name} onChange={(e) => handleChange('name', e.target.value)} />
+            </div>
+
+            {/* Provider */}
+            <div>
+              <label className={labelClass}>Provider</label>
+              <input className={inputClass} value={form.provider} onChange={(e) => handleChange('provider', e.target.value)} />
+            </div>
+
+            {/* Activity Type */}
+            <div>
+              <label className={labelClass}>Activity Type</label>
+              <input className={inputClass} value={form.activity_type} onChange={(e) => handleChange('activity_type', e.target.value)} />
+            </div>
+
+            {/* Credits */}
+            <div>
+              <label className={labelClass}>Credits</label>
+              <input
+                type="number"
+                step="0.1"
+                className={inputClass}
+                value={form.credits}
+                onChange={(e) => handleChange('credits', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+
+            {/* Value */}
+            <div>
+              <label className={labelClass}>Value ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                className={inputClass}
+                value={form.value}
+                onChange={(e) => handleChange('value', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+
+            {/* Activity Date */}
+            <div>
+              <label className={labelClass}>Activity Date</label>
+              <input
+                type="date"
+                className={inputClass}
+                value={form.activity_date}
+                onChange={(e) => handleChange('activity_date', e.target.value)}
+              />
+            </div>
+
+            {/* Status */}
+            <div>
+              <label className={labelClass}>Status</label>
+              <select
+                className={inputClass}
+                value={form.status}
+                onChange={(e) => handleChange('status', e.target.value)}
+              >
+                <option value="PENDING">PENDING</option>
+                <option value="APPROVED">APPROVED</option>
+                <option value="REJECTED">REJECTED</option>
+                <option value="COMPLETED">COMPLETED</option>
+              </select>
+            </div>
+
+            {/* Description - full width */}
+            <div className="col-span-2">
+              <label className={labelClass}>Description</label>
+              <textarea
+                rows={3}
+                className={inputClass + ' resize-none'}
+                value={form.description}
+                onChange={(e) => handleChange('description', e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Footer */}
+        <div className="flex justify-end gap-[12px] border-t border-[var(--color-border)] px-[24px] py-[16px]">
+          <button
+            onClick={onCancel}
+            className="rounded-[8px] border border-[var(--color-border)] bg-[var(--color-secondary)] px-[16px] py-[8px] font-mono text-[13px] font-semibold text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-border)]"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={saving}
+            className="rounded-[8px] bg-[#FACC15] px-[16px] py-[8px] font-mono text-[13px] font-semibold text-[#09090B] transition-colors hover:bg-[#FACC15]/80 disabled:opacity-50"
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Main Component ───────────────────────────────────────── */
 
 export default function ActivityDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [activity, setActivity] = useState<Activity | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Dialogs
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const fetchActivity = useCallback(() => {
+    if (!id) return;
+    setLoading(true);
+    api.cme
+      .get(Number(id))
+      .then((data: Activity) => {
+        setActivity(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, [id]);
+
+  useEffect(() => {
+    fetchActivity();
+  }, [fetchActivity]);
+
+  /* ── Actions ─────────────────────────────────────────────── */
+
+  const handleApprove = async () => {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      await api.cme.update(Number(id), { status: 'APPROVED' });
+      fetchActivity();
+    } catch (err) {
+      console.error('Failed to approve activity', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!id) return;
+    setActionLoading(true);
+    setShowRejectConfirm(false);
+    try {
+      await api.cme.update(Number(id), { status: 'REJECTED' });
+      fetchActivity();
+    } catch (err) {
+      console.error('Failed to reject activity', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+    setActionLoading(true);
+    setShowDeleteConfirm(false);
+    try {
+      await api.cme.delete(Number(id));
+      navigate('/cme');
+    } catch (err) {
+      console.error('Failed to delete activity', err);
+      setActionLoading(false);
+    }
+  };
+
+  const handleEditSave = async (data: Partial<Activity>) => {
+    if (!id) return;
+    try {
+      await api.cme.update(Number(id), data);
+      setShowEditModal(false);
+      fetchActivity();
+    } catch (err) {
+      console.error('Failed to update activity', err);
+    }
+  };
+
+  /* ── Render: Loading / Not Found ─────────────────────────── */
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="border-b border-[var(--color-border)] bg-[var(--color-background)] px-[32px] py-[24px]">
+          <div>
+            <h1 className="font-headline text-[24px] font-bold tracking-tight text-[var(--color-foreground)]">
+              Loading...
+            </h1>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activity) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="border-b border-[var(--color-border)] bg-[var(--color-background)] px-[32px] py-[24px]">
+          <div>
+            <h1 className="font-headline text-[24px] font-bold tracking-tight text-[var(--color-foreground)]">
+              Activity not found
+            </h1>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const totalAttendees = activity.participants.length;
+  const totalValue = activity.value;
+  const creditsAwarded = activity.credits;
+  const isPending = activity.status.toUpperCase() === 'PENDING';
+
   return (
     <div className="flex flex-col h-full">
+      {/* Dialogs */}
+      {showRejectConfirm && (
+        <ConfirmDialog
+          title="Reject Activity"
+          message={`Are you sure you want to reject "${activity.name}"? This will mark the activity as REJECTED.`}
+          confirmLabel="Reject"
+          confirmColor="red"
+          onConfirm={handleReject}
+          onCancel={() => setShowRejectConfirm(false)}
+        />
+      )}
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          title="Delete Activity"
+          message={`Are you sure you want to permanently delete "${activity.name}"? This action cannot be undone.`}
+          confirmLabel="Delete"
+          confirmColor="red"
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
+      {showEditModal && (
+        <EditModal
+          activity={activity}
+          onSave={handleEditSave}
+          onCancel={() => setShowEditModal(false)}
+        />
+      )}
+
       {/* TopBar */}
       <div className="border-b border-[var(--color-border)] bg-[var(--color-background)] px-[32px] py-[24px]">
-        <div>
-          <h1 className="font-headline text-[24px] font-bold tracking-tight text-[var(--color-foreground)]">
-            Annual Cardiology Conference
-          </h1>
-          <p className="mt-[4px] text-[14px] text-[var(--color-muted-foreground)]">
-            CME-2025-001 • Approved
-          </p>
+        <button
+          onClick={() => navigate('/cme')}
+          className="mb-[12px] flex items-center gap-[6px] text-[14px] text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]"
+        >
+          <ArrowLeft className="h-[16px] w-[16px]" />
+          Back to Activities
+        </button>
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-[12px]">
+            <div>
+              <h1 className="font-headline text-[24px] font-bold tracking-tight text-[var(--color-foreground)]">
+                {activity.name}
+              </h1>
+              <div className="mt-[6px] flex items-center gap-[8px]">
+                <span className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
+                  CME-{activity.id}
+                </span>
+                <span
+                  className={`inline-flex rounded-[6px] px-[8px] py-[2px] font-mono text-[11px] font-semibold uppercase ${statusBadgeClasses(activity.status)}`}
+                >
+                  {activity.status}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-[8px]">
+            {isPending && (
+              <>
+                <button
+                  onClick={handleApprove}
+                  disabled={actionLoading}
+                  className="flex items-center gap-[6px] rounded-[8px] bg-green-600 px-[14px] py-[8px] font-mono text-[13px] font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+                >
+                  <CheckCircle className="h-[15px] w-[15px]" />
+                  APPROVE
+                </button>
+                <button
+                  onClick={() => setShowRejectConfirm(true)}
+                  disabled={actionLoading}
+                  className="flex items-center gap-[6px] rounded-[8px] bg-red-600 px-[14px] py-[8px] font-mono text-[13px] font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+                >
+                  <XCircle className="h-[15px] w-[15px]" />
+                  REJECT
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => setShowEditModal(true)}
+              disabled={actionLoading}
+              className="flex items-center gap-[6px] rounded-[8px] border border-[var(--color-border)] bg-[var(--color-secondary)] px-[14px] py-[8px] font-mono text-[13px] font-semibold text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-border)] disabled:opacity-50"
+            >
+              <Pencil className="h-[15px] w-[15px]" />
+              EDIT
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={actionLoading}
+              className="flex items-center gap-[6px] rounded-[8px] border border-red-500/30 bg-red-950/40 px-[14px] py-[8px] font-mono text-[13px] font-semibold text-red-400 transition-colors hover:bg-red-900/50 disabled:opacity-50"
+            >
+              <Trash2 className="h-[15px] w-[15px]" />
+              DELETE
+            </button>
+          </div>
         </div>
       </div>
 
@@ -69,50 +465,20 @@ export default function ActivityDetail() {
         <div className="flex gap-[24px]">
           {/* Left Column */}
           <div className="flex-1 space-y-[24px]">
-            {/* Subject Scores Breakdown */}
-            <div className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-card)] p-[24px]">
-              <h2 className="mb-[16px] text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                Subject Scores Breakdown
-              </h2>
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[var(--color-border)]">
-                    <th className="pb-[12px] text-left text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      SUBJECT
-                    </th>
-                    <th className="pb-[12px] text-left text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      SCORE
-                    </th>
-                    <th className="pb-[12px] text-left text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      VALUE
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subjectScores.map((item, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-[var(--color-border)] last:border-0"
-                    >
-                      <td className="py-[12px] text-[14px] font-medium text-[var(--color-foreground)]">
-                        {item.subject}
-                      </td>
-                      <td className="py-[12px] font-mono text-[14px] text-[var(--color-foreground)]">
-                        {item.score}%
-                      </td>
-                      <td className="py-[12px] font-mono text-[14px] text-[var(--color-foreground)]">
-                        ${item.value}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {/* Description */}
+            {activity.description && (
+              <div className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-card)] p-[24px]">
+                <h2 className="mb-[16px] text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                  Description
+                </h2>
+                <p className="text-[14px] text-[var(--color-foreground)]">{activity.description}</p>
+              </div>
+            )}
 
             {/* Attendees Table */}
             <div className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-card)] p-[24px]">
               <h2 className="mb-[16px] text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                Attendees
+                Participants
               </h2>
               <table className="w-full">
                 <thead>
@@ -121,13 +487,13 @@ export default function ActivityDetail() {
                       NAME
                     </th>
                     <th className="pb-[12px] text-left text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      ROLE
+                      DEPARTMENT
                     </th>
                     <th className="pb-[12px] text-left text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
                       CREDITS
                     </th>
                     <th className="pb-[12px] text-left text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      ENGAGEMENT
+                      DATE EARNED
                     </th>
                     <th className="pb-[12px] text-left text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
                       STATUS
@@ -135,32 +501,37 @@ export default function ActivityDetail() {
                   </tr>
                 </thead>
                 <tbody>
-                  {attendees.map((attendee) => (
+                  {activity.participants.map((participant) => (
                     <tr
-                      key={attendee.id}
+                      key={participant.person_id}
                       className="border-b border-[var(--color-border)] last:border-0"
                     >
                       <td className="py-[12px] text-[14px] font-medium text-[var(--color-foreground)]">
-                        {attendee.name}
+                        <button
+                          onClick={() => navigate(`/hr/${participant.person_id}`)}
+                          className="cursor-pointer text-[var(--color-brand-accent)] underline-offset-2 hover:underline"
+                        >
+                          {participant.name}
+                        </button>
                       </td>
                       <td className="py-[12px] text-[14px] text-[var(--color-muted-foreground)]">
-                        {attendee.role}
+                        {participant.department}
                       </td>
                       <td className="py-[12px] font-mono text-[14px] text-[var(--color-foreground)]">
-                        {attendee.credits.toFixed(1)}
+                        {participant.credits_earned.toFixed(1)}
                       </td>
-                      <td className="py-[12px] font-mono text-[14px] text-[var(--color-foreground)]">
-                        {attendee.engagement}%
+                      <td className="py-[12px] text-[14px] text-[var(--color-muted-foreground)]">
+                        {participant.date_earned}
                       </td>
                       <td className="py-[12px]">
                         <span
                           className={`inline-flex rounded-[6px] px-[8px] py-[4px] text-[12px] font-semibold uppercase ${
-                            attendee.status === 'COMPLETED'
-                              ? 'bg-green-50 text-green-600'
-                              : 'bg-amber-50 text-amber-600'
+                            participant.verified
+                              ? 'bg-green-950/40 text-green-400 ring-1 ring-green-500/30'
+                              : 'bg-amber-950/40 text-amber-400 ring-1 ring-amber-500/30'
                           }`}
                         >
-                          {attendee.status}
+                          {participant.verified ? 'VERIFIED' : 'PENDING'}
                         </span>
                       </td>
                     </tr>
@@ -184,10 +555,10 @@ export default function ActivityDetail() {
                   </div>
                   <div>
                     <p className="text-[12px] uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      TOTAL ATTENDEES
+                      TOTAL PARTICIPANTS
                     </p>
                     <p className="font-mono text-[20px] font-bold text-[var(--color-foreground)]">
-                      45
+                      {totalAttendees}
                     </p>
                   </div>
                 </div>
@@ -200,7 +571,7 @@ export default function ActivityDetail() {
                       CREDITS AWARDED
                     </p>
                     <p className="font-mono text-[20px] font-bold text-[var(--color-foreground)]">
-                      2.0
+                      {creditsAwarded.toFixed(1)}
                     </p>
                   </div>
                 </div>
@@ -213,7 +584,7 @@ export default function ActivityDetail() {
                       CME VALUE
                     </p>
                     <p className="font-mono text-[20px] font-bold text-[var(--color-foreground)]">
-                      $400
+                      ${totalValue.toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -223,23 +594,17 @@ export default function ActivityDetail() {
                   </div>
                   <div>
                     <p className="text-[12px] uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      ENGAGEMENT RATE
+                      VERIFIED RATE
                     </p>
                     <p className="font-mono text-[20px] font-bold text-[var(--color-foreground)]">
-                      89%
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-[12px]">
-                  <div className="flex h-[40px] w-[40px] items-center justify-center rounded-[8px] bg-[var(--color-secondary)]">
-                    <TrendingUp className="h-[20px] w-[20px] text-[var(--color-brand-accent)]" />
-                  </div>
-                  <div>
-                    <p className="text-[12px] uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      AVG SCORE
-                    </p>
-                    <p className="font-mono text-[20px] font-bold text-[var(--color-foreground)]">
-                      87%
+                      {totalAttendees > 0
+                        ? Math.round(
+                            (activity.participants.filter((p) => p.verified).length /
+                              totalAttendees) *
+                              100
+                          )
+                        : 0}
+                      %
                     </p>
                   </div>
                 </div>
@@ -257,14 +622,14 @@ export default function ActivityDetail() {
                     CME TYPE
                   </p>
                   <span className="inline-flex rounded-[6px] bg-[var(--color-brand-accent)] px-[8px] py-[4px] text-[12px] font-semibold uppercase text-[var(--color-foreground)]">
-                    Category 1
+                    {activity.activity_type}
                   </span>
                 </div>
                 <div>
                   <p className="mb-[4px] text-[12px] uppercase tracking-wide text-[var(--color-muted-foreground)]">
                     PROVIDER
                   </p>
-                  <p className="text-[14px] font-medium text-[var(--color-foreground)]">AMA</p>
+                  <p className="text-[14px] font-medium text-[var(--color-foreground)]">{activity.provider}</p>
                 </div>
                 <div>
                   <p className="mb-[4px] text-[12px] uppercase tracking-wide text-[var(--color-muted-foreground)]">
@@ -273,20 +638,19 @@ export default function ActivityDetail() {
                   <div className="flex items-center gap-[8px]">
                     <Calendar className="h-[16px] w-[16px] text-[var(--color-muted-foreground)]" />
                     <p className="text-[14px] font-medium text-[var(--color-foreground)]">
-                      March 15, 2025
+                      {activity.activity_date}
                     </p>
                   </div>
                 </div>
                 <div>
                   <p className="mb-[4px] text-[12px] uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                    DURATION
+                    STATUS
                   </p>
-                  <div className="flex items-center gap-[8px]">
-                    <Clock className="h-[16px] w-[16px] text-[var(--color-muted-foreground)]" />
-                    <p className="text-[14px] font-medium text-[var(--color-foreground)]">
-                      4 hours
-                    </p>
-                  </div>
+                  <span
+                    className={`inline-flex rounded-[6px] px-[8px] py-[4px] font-mono text-[12px] font-semibold uppercase ${statusBadgeClasses(activity.status)}`}
+                  >
+                    {activity.status}
+                  </span>
                 </div>
               </div>
             </div>

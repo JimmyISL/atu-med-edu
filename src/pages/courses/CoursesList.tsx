@@ -1,69 +1,193 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, X } from 'lucide-react';
+import { api } from '../../api';
+
+interface Course {
+  id: number;
+  name: string;
+  course_number: string;
+  instructor: string;
+  cme_type: string;
+  status: string;
+}
+
+interface CoursesResponse {
+  data: Course[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+interface Person {
+  id: number;
+  name: string;
+  role: string;
+  department: string;
+}
+
+interface FormData {
+  name: string;
+  course_number: string;
+  chair_id: string;
+  cme_type: string;
+  cme_total: string;
+  value_total: string;
+  course_type: string;
+  duration: string;
+  department: string;
+  start_date: string;
+  end_date: string;
+  prerequisites: string;
+  materials_required: string;
+  notes: string;
+  status: string;
+  moderator1_id: string;
+  moderator2_id: string;
+  organizer_id: string;
+  admin_id: string;
+}
+
+const initialFormData: FormData = {
+  name: '',
+  course_number: '',
+  chair_id: '',
+  cme_type: 'Category 1',
+  cme_total: '',
+  value_total: '',
+  course_type: 'Required',
+  duration: '',
+  department: '',
+  start_date: '',
+  end_date: '',
+  prerequisites: '',
+  materials_required: '',
+  notes: '',
+  status: 'DRAFT',
+  moderator1_id: '',
+  moderator2_id: '',
+  organizer_id: '',
+  admin_id: '',
+};
+
+function getStatusColor(status: string): string {
+  switch (status?.toUpperCase()) {
+    case 'ACTIVE':
+      return 'green';
+    case 'DRAFT':
+      return 'amber';
+    case 'ARCHIVED':
+      return 'purple';
+    default:
+      return 'green';
+  }
+}
 
 export default function CoursesList() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'archived'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const [people, setPeople] = useState<Person[]>([]);
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [submitting, setSubmitting] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const courses = [
-    {
-      id: 1,
-      name: 'Advanced Cardiac Life Support',
-      courseNr: 'CRS-1001',
-      instructor: 'Dr. Sarah Mitchell',
-      cmeType: 'Category 1',
-      status: 'ACTIVE',
-      statusColor: 'green'
-    },
-    {
-      id: 2,
-      name: 'Internal Medicine Board Review',
-      courseNr: 'CRS-1002',
-      instructor: 'Dr. James Wilson',
-      cmeType: 'Category 1',
-      status: 'ACTIVE',
-      statusColor: 'green'
-    },
-    {
-      id: 3,
-      name: 'Pharmacology Fundamentals',
-      courseNr: 'CRS-1003',
-      instructor: 'Dr. Chen Wei',
-      cmeType: 'Category 2',
-      status: 'DRAFT',
-      statusColor: 'amber'
-    },
-    {
-      id: 4,
-      name: 'Ethics in Medical Practice',
-      courseNr: 'CRS-1004',
-      instructor: 'Dr. Lisa Kim',
-      cmeType: 'Category 1',
-      status: 'ACTIVE',
-      statusColor: 'green'
-    },
-    {
-      id: 5,
-      name: 'Surgical Techniques Workshop',
-      courseNr: 'CRS-1005',
-      instructor: 'Dr. Ray Patel',
-      cmeType: 'Category 1',
-      status: 'ARCHIVED',
-      statusColor: 'purple'
-    },
-    {
-      id: 6,
-      name: 'Emergency Medicine Update',
-      courseNr: 'CRS-1006',
-      instructor: 'Dr. Sarah Mitchell',
-      cmeType: 'Category 2',
-      status: 'ACTIVE',
-      statusColor: 'green'
+  // Debounce search input by 300ms
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
-  ];
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 300);
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  const fetchCourses = useCallback(async () => {
+    const params: Record<string, string> = {
+      page: String(page),
+      limit: String(limit),
+    };
+    if (activeTab !== 'all') {
+      params.status = activeTab.toUpperCase();
+    }
+    if (debouncedSearch.trim()) {
+      params.search = debouncedSearch.trim();
+    }
+    try {
+      const res: CoursesResponse = await api.courses.list(params);
+      setCourses(res.data);
+      setTotal(res.total);
+    } catch (err) {
+      console.error('Failed to fetch courses:', err);
+    }
+  }, [activeTab, debouncedSearch, page, limit]);
+
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
+
+  // Reset page when tab changes
+  const handleTabChange = (tab: 'all' | 'active' | 'archived') => {
+    setActiveTab(tab);
+    setPage(1);
+  };
+
+  useEffect(() => {
+    api.people.all().then((data: Person[]) => setPeople(data)).catch((err: unknown) => {
+      console.error('Failed to fetch people:', err);
+    });
+  }, []);
+
+  const handleFormChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    try {
+      const payload: Record<string, unknown> = {
+        name: formData.name,
+        course_number: formData.course_number,
+        cme_type: formData.cme_type,
+        course_type: formData.course_type,
+        duration: formData.duration,
+        department: formData.department,
+        start_date: formData.start_date || undefined,
+        end_date: formData.end_date || undefined,
+        prerequisites: formData.prerequisites,
+        materials_required: formData.materials_required,
+        notes: formData.notes,
+        status: formData.status,
+        chair_id: formData.chair_id ? Number(formData.chair_id) : undefined,
+        cme_total: formData.cme_total ? Number(formData.cme_total) : undefined,
+        value_total: formData.value_total ? Number(formData.value_total) : undefined,
+        moderator1_id: formData.moderator1_id ? Number(formData.moderator1_id) : undefined,
+        moderator2_id: formData.moderator2_id ? Number(formData.moderator2_id) : undefined,
+        organizer_id: formData.organizer_id ? Number(formData.organizer_id) : undefined,
+        admin_id: formData.admin_id ? Number(formData.admin_id) : undefined,
+      };
+      await api.courses.create(payload);
+      setIsModalOpen(false);
+      setFormData(initialFormData);
+      await fetchCourses();
+    } catch (err) {
+      console.error('Failed to create course:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const getStatusColorClass = (color: string) => {
     switch (color) {
@@ -77,6 +201,10 @@ export default function CoursesList() {
         return 'bg-green-500/20 text-green-600';
     }
   };
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const showingFrom = total === 0 ? 0 : (page - 1) * limit + 1;
+  const showingTo = Math.min(page * limit, total);
 
   return (
     <div className="flex flex-col h-full bg-[var(--color-background)]">
@@ -103,7 +231,7 @@ export default function CoursesList() {
       <div className="flex justify-between items-center px-[32px] py-[16px] border-b border-[var(--color-border)]">
         <div className="flex gap-[24px]">
           <button
-            onClick={() => setActiveTab('all')}
+            onClick={() => handleTabChange('all')}
             className={`font-mono text-[13px] pb-[4px] ${
               activeTab === 'all'
                 ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
@@ -113,7 +241,7 @@ export default function CoursesList() {
             All Courses
           </button>
           <button
-            onClick={() => setActiveTab('active')}
+            onClick={() => handleTabChange('active')}
             className={`font-mono text-[13px] pb-[4px] ${
               activeTab === 'active'
                 ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
@@ -123,7 +251,7 @@ export default function CoursesList() {
             Active
           </button>
           <button
-            onClick={() => setActiveTab('archived')}
+            onClick={() => handleTabChange('archived')}
             className={`font-mono text-[13px] pb-[4px] ${
               activeTab === 'archived'
                 ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
@@ -172,25 +300,25 @@ export default function CoursesList() {
             {courses.map((course) => (
               <tr
                 key={course.id}
-                onClick={() => navigate('/courses/1')}
+                onClick={() => navigate(`/courses/${course.id}`)}
                 className="border-b border-[var(--color-border)] cursor-pointer hover:bg-[var(--color-muted)]"
               >
                 <td className="font-mono text-[13px] text-[var(--color-foreground)] py-[16px]">
                   {course.name}
                 </td>
                 <td className="font-mono text-[13px] text-[var(--color-muted-foreground)] py-[16px]">
-                  {course.courseNr}
+                  {course.course_number}
                 </td>
                 <td className="font-mono text-[13px] text-[var(--color-muted-foreground)] py-[16px]">
                   {course.instructor}
                 </td>
                 <td className="font-mono text-[13px] text-[var(--color-muted-foreground)] py-[16px]">
-                  {course.cmeType}
+                  {course.cme_type}
                 </td>
                 <td className="font-mono text-[13px] py-[16px]">
                   <span
                     className={`inline-block px-[8px] py-[2px] ${getStatusColorClass(
-                      course.statusColor
+                      getStatusColor(course.status)
                     )} rounded-[4px] text-[11px] font-bold tracking-[0.05em]`}
                   >
                     {course.status}
@@ -205,16 +333,26 @@ export default function CoursesList() {
       {/* Pagination */}
       <div className="flex justify-between items-center px-[32px] py-[16px] border-t border-[var(--color-border)]">
         <div className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
-          Showing 1-6 of 6 courses
+          {total === 0
+            ? 'No courses'
+            : `Showing ${showingFrom}-${showingTo} of ${total} courses`}
         </div>
         <div className="flex gap-[8px]">
-          <button className="font-mono text-[13px] px-[12px] py-[6px] bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-muted-foreground)]">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="font-mono text-[13px] px-[12px] py-[6px] bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-muted-foreground)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Previous
           </button>
           <button className="font-mono text-[13px] px-[12px] py-[6px] bg-[#FACC15] border border-[#FACC15] rounded-[4px] text-black font-bold">
-            1
+            {page}
           </button>
-          <button className="font-mono text-[13px] px-[12px] py-[6px] bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-muted-foreground)]">
+          <button
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            className="font-mono text-[13px] px-[12px] py-[6px] bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-muted-foreground)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Next
           </button>
         </div>
@@ -246,6 +384,8 @@ export default function CoursesList() {
                 </label>
                 <input
                   type="text"
+                  value={formData.name}
+                  onChange={(e) => handleFormChange('name', e.target.value)}
                   className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                   placeholder="Enter course name"
                 />
@@ -258,6 +398,8 @@ export default function CoursesList() {
                 </label>
                 <input
                   type="text"
+                  value={formData.course_number}
+                  onChange={(e) => handleFormChange('course_number', e.target.value)}
                   className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                   placeholder="CRS-####"
                 />
@@ -268,13 +410,17 @@ export default function CoursesList() {
                 <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                   CHAIR
                 </label>
-                <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
-                  <option>Select chair</option>
-                  <option>Dr. Sarah Mitchell</option>
-                  <option>Dr. James Wilson</option>
-                  <option>Dr. Chen Wei</option>
-                  <option>Dr. Lisa Kim</option>
-                  <option>Dr. Ray Patel</option>
+                <select
+                  value={formData.chair_id}
+                  onChange={(e) => handleFormChange('chair_id', e.target.value)}
+                  className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                >
+                  <option value="">Select chair</option>
+                  {people.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -290,7 +436,11 @@ export default function CoursesList() {
                     <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       CME TYPE
                     </label>
-                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                    <select
+                      value={formData.cme_type}
+                      onChange={(e) => handleFormChange('cme_type', e.target.value)}
+                      className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                    >
                       <option>Category 1</option>
                       <option>Category 2</option>
                     </select>
@@ -303,6 +453,8 @@ export default function CoursesList() {
                     </label>
                     <input
                       type="number"
+                      value={formData.cme_total}
+                      onChange={(e) => handleFormChange('cme_total', e.target.value)}
                       className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                       placeholder="0.0"
                       step="0.1"
@@ -316,6 +468,8 @@ export default function CoursesList() {
                     </label>
                     <input
                       type="number"
+                      value={formData.value_total}
+                      onChange={(e) => handleFormChange('value_total', e.target.value)}
                       className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                       placeholder="$0.00"
                     />
@@ -330,7 +484,11 @@ export default function CoursesList() {
                   <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                     COURSE TYPE
                   </label>
-                  <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
+                  <select
+                    value={formData.course_type}
+                    onChange={(e) => handleFormChange('course_type', e.target.value)}
+                    className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                  >
                     <option>Required</option>
                     <option>Elective</option>
                     <option>Optional</option>
@@ -344,6 +502,8 @@ export default function CoursesList() {
                   </label>
                   <input
                     type="text"
+                    value={formData.duration}
+                    onChange={(e) => handleFormChange('duration', e.target.value)}
                     className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                     placeholder="e.g., 2 weeks, 40 hours"
                   />
@@ -355,8 +515,12 @@ export default function CoursesList() {
                 <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                   SERVICE/DEPT
                 </label>
-                <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
-                  <option>Select department</option>
+                <select
+                  value={formData.department}
+                  onChange={(e) => handleFormChange('department', e.target.value)}
+                  className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                >
+                  <option value="">Select department</option>
                   <option>Cardiology</option>
                   <option>Internal Medicine</option>
                   <option>Surgery</option>
@@ -374,6 +538,8 @@ export default function CoursesList() {
                   </label>
                   <input
                     type="date"
+                    value={formData.start_date}
+                    onChange={(e) => handleFormChange('start_date', e.target.value)}
                     className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                   />
                 </div>
@@ -385,6 +551,8 @@ export default function CoursesList() {
                   </label>
                   <input
                     type="date"
+                    value={formData.end_date}
+                    onChange={(e) => handleFormChange('end_date', e.target.value)}
                     className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
                   />
                 </div>
@@ -402,13 +570,17 @@ export default function CoursesList() {
                     <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       MODERATOR 1
                     </label>
-                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
-                      <option>Select moderator</option>
-                      <option>Dr. Sarah Mitchell</option>
-                      <option>Dr. James Wilson</option>
-                      <option>Dr. Chen Wei</option>
-                      <option>Dr. Lisa Kim</option>
-                      <option>Dr. Ray Patel</option>
+                    <select
+                      value={formData.moderator1_id}
+                      onChange={(e) => handleFormChange('moderator1_id', e.target.value)}
+                      className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                    >
+                      <option value="">Select moderator</option>
+                      {people.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -417,13 +589,17 @@ export default function CoursesList() {
                     <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       MODERATOR 2
                     </label>
-                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
-                      <option>Select moderator</option>
-                      <option>Dr. Sarah Mitchell</option>
-                      <option>Dr. James Wilson</option>
-                      <option>Dr. Chen Wei</option>
-                      <option>Dr. Lisa Kim</option>
-                      <option>Dr. Ray Patel</option>
+                    <select
+                      value={formData.moderator2_id}
+                      onChange={(e) => handleFormChange('moderator2_id', e.target.value)}
+                      className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                    >
+                      <option value="">Select moderator</option>
+                      {people.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -432,11 +608,17 @@ export default function CoursesList() {
                     <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       ORGANIZER
                     </label>
-                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
-                      <option>Select organizer</option>
-                      <option>Maria Santos</option>
-                      <option>Anna Kowalski</option>
-                      <option>John Smith</option>
+                    <select
+                      value={formData.organizer_id}
+                      onChange={(e) => handleFormChange('organizer_id', e.target.value)}
+                      className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                    >
+                      <option value="">Select organizer</option>
+                      {people.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -445,11 +627,17 @@ export default function CoursesList() {
                     <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">
                       ADMIN
                     </label>
-                    <select className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500">
-                      <option>Select admin</option>
-                      <option>Maria Santos</option>
-                      <option>Anna Kowalski</option>
-                      <option>John Smith</option>
+                    <select
+                      value={formData.admin_id}
+                      onChange={(e) => handleFormChange('admin_id', e.target.value)}
+                      className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                    >
+                      <option value="">Select admin</option>
+                      {people.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -467,6 +655,8 @@ export default function CoursesList() {
                     PREREQUISITES
                   </label>
                   <textarea
+                    value={formData.prerequisites}
+                    onChange={(e) => handleFormChange('prerequisites', e.target.value)}
                     className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500 min-h-[80px]"
                     placeholder="Enter course prerequisites"
                   />
@@ -478,6 +668,8 @@ export default function CoursesList() {
                     MATERIALS REQUIRED
                   </label>
                   <textarea
+                    value={formData.materials_required}
+                    onChange={(e) => handleFormChange('materials_required', e.target.value)}
                     className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500 min-h-[80px]"
                     placeholder="Enter required materials"
                   />
@@ -489,6 +681,8 @@ export default function CoursesList() {
                     NOTES
                   </label>
                   <textarea
+                    value={formData.notes}
+                    onChange={(e) => handleFormChange('notes', e.target.value)}
                     className="font-mono text-[13px] px-[12px] py-[8px] w-full bg-[var(--color-background)] border border-[var(--color-border)] rounded-[4px] text-[var(--color-foreground)] focus:outline-none focus:ring-1 focus:ring-yellow-500 min-h-[80px]"
                     placeholder="Enter additional notes"
                   />
@@ -505,10 +699,11 @@ export default function CoursesList() {
                 Cancel
               </button>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={handleSubmit}
+                disabled={submitting}
                 className="font-mono text-[13px] px-[16px] py-[8px] bg-[#FACC15] text-black rounded-[4px] hover:bg-[#FACC15]/90 font-bold tracking-[0.05em]"
               >
-                Save Course
+                {submitting ? 'Saving...' : 'Save Course'}
               </button>
             </div>
           </div>

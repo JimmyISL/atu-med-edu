@@ -1,92 +1,194 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, X } from 'lucide-react';
+import { api } from '../../api';
+
+interface Meeting {
+  id: number;
+  title: string;
+  course: string;
+  meeting_date: string;
+  time: string;
+  location: string;
+  attendees: number;
+  status: string;
+  course_id: number;
+  subject: string;
+  presenter_id: number;
+  cme_credits: string;
+  expected_attendees: number;
+}
+
+interface Course {
+  id: number;
+  course_number: string;
+  name: string;
+  [key: string]: unknown;
+}
+
+interface Person {
+  id: number;
+  first_name: string;
+  last_name: string;
+  [key: string]: unknown;
+}
+
+function getStatusColor(status: string): string {
+  switch (status.toUpperCase()) {
+    case 'COMPLETED':
+      return 'text-green-600 bg-green-50';
+    case 'SCHEDULED':
+      return 'text-blue-600 bg-blue-50';
+    case 'IN_PROGRESS':
+    case 'IN PROGRESS':
+      return 'text-amber-600 bg-amber-50';
+    case 'CANCELLED':
+      return 'text-red-600 bg-red-50';
+    default:
+      return 'text-gray-600 bg-gray-50';
+  }
+}
+
+const initialFormState = {
+  title: '',
+  course_id: '',
+  meeting_date: '',
+  start_time: '',
+  end_time: '',
+  location: '',
+  subject: '',
+  presenter_id: '',
+  cme_credits: '',
+  expected_attendees: '',
+  description: '',
+  notes: '',
+};
 
 export default function MeetingsList() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showScheduleModal, setShowScheduleModal] = useState(false);
 
-  const meetings = [
-    {
-      id: 1,
-      name: 'Anatomy Lab Review',
-      course: 'CRS-1001',
-      date: '2025-01-12',
-      time: '09:00-10:30',
-      location: 'Room 301A',
-      attendees: 24,
-      status: 'COMPLETED',
-      statusColor: 'text-green-600 bg-green-50',
-    },
-    {
-      id: 2,
-      name: 'Cardiology Seminar',
-      course: 'CRS-1002',
-      date: '2025-03-04',
-      time: '14:00-16:00',
-      location: 'Aud. B',
-      attendees: 45,
-      status: 'SCHEDULED',
-      statusColor: 'text-blue-600 bg-blue-50',
-    },
-    {
-      id: 3,
-      name: 'Pharmacology Workshop',
-      course: 'CRS-1003',
-      date: '2025-02-26',
-      time: '10:00-12:00',
-      location: 'Lab 204',
-      attendees: 18,
-      status: 'IN PROGRESS',
-      statusColor: 'text-amber-600 bg-amber-50',
-    },
-    {
-      id: 4,
-      name: 'Ethics Board Meeting',
-      course: 'CRS-1004',
-      date: '2025-03-05',
-      time: '13:00-14:30',
-      location: 'Conf. Rm 1',
-      attendees: 12,
-      status: 'SCHEDULED',
-      statusColor: 'text-blue-600 bg-blue-50',
-    },
-    {
-      id: 5,
-      name: 'Surgical Skills Demo',
-      course: 'CRS-1005',
-      date: '2025-02-20',
-      time: '08:00-12:00',
-      location: 'Sim Center',
-      attendees: 30,
-      status: 'COMPLETED',
-      statusColor: 'text-green-600 bg-green-50',
-    },
-    {
-      id: 6,
-      name: 'Grand Rounds: Neurology',
-      course: 'CRS-1002',
-      date: '2025-03-10',
-      time: '12:00-13:00',
-      location: 'Main Hall',
-      attendees: 80,
-      status: 'SCHEDULED',
-      statusColor: 'text-blue-600 bg-blue-50',
-    },
-    {
-      id: 7,
-      name: 'Resident Case Review',
-      course: 'CRS-1006',
-      date: '2025-03-08',
-      time: '16:00-17:00',
-      location: 'Room 105',
-      attendees: 15,
-      status: 'CANCELLED',
-      statusColor: 'text-red-600 bg-red-50',
-    },
-  ];
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const [loading, setLoading] = useState(false);
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
+
+  const [form, setForm] = useState(initialFormState);
+  const [submitting, setSubmitting] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounce search input by 300ms
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 300);
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Fetch courses and people on mount for dropdown population
+  useEffect(() => {
+    api.courses.list().then((res: any) => {
+      setCourses(Array.isArray(res) ? res : res.data ?? []);
+    }).catch(() => {});
+
+    api.people.all().then((res: any) => {
+      setPeople(Array.isArray(res) ? res : []);
+    }).catch(() => {});
+  }, []);
+
+  const fetchMeetings = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params: Record<string, string> = {
+        page: String(page),
+        limit: String(limit),
+      };
+
+      if (activeTab === 'upcoming') {
+        params.status = 'SCHEDULED';
+      } else if (activeTab === 'past') {
+        params.status = 'COMPLETED';
+      } else if (activeTab === 'cancelled') {
+        params.status = 'CANCELLED';
+      }
+
+      if (debouncedSearch.trim()) {
+        params.search = debouncedSearch.trim();
+      }
+
+      const res = await api.meetings.list(params);
+      const data: Meeting[] = Array.isArray(res) ? res : res.data ?? [];
+      const totalCount: number = typeof res.total === 'number' ? res.total : data.length;
+      setMeetings(data);
+      setTotal(totalCount);
+    } catch {
+      setMeetings([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab, debouncedSearch, page, limit]);
+
+  // Fetch meetings whenever filters or page change
+  useEffect(() => {
+    fetchMeetings();
+  }, [fetchMeetings]);
+
+  // Reset page when tab changes
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setPage(1);
+  };
+
+  function handleFormChange(field: string, value: string) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleCreateMeeting() {
+    setSubmitting(true);
+    try {
+      await api.meetings.create({
+        title: form.title,
+        course_id: form.course_id ? Number(form.course_id) : undefined,
+        meeting_date: form.meeting_date,
+        start_time: form.start_time,
+        end_time: form.end_time,
+        location: form.location,
+        subject: form.subject,
+        presenter_id: form.presenter_id ? Number(form.presenter_id) : undefined,
+        cme_credits: form.cme_credits,
+        expected_attendees: form.expected_attendees ? Number(form.expected_attendees) : undefined,
+        description: form.description,
+        notes: form.notes,
+      });
+      setShowScheduleModal(false);
+      setForm(initialFormState);
+      fetchMeetings();
+    } catch {
+      // keep modal open on error
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const showingFrom = total === 0 ? 0 : (page - 1) * limit + 1;
+  const showingTo = Math.min(page * limit, total);
 
   return (
     <div className="flex flex-col h-full">
@@ -115,7 +217,7 @@ export default function MeetingsList() {
           {['all', 'upcoming', 'past', 'cancelled'].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => handleTabChange(tab)}
               className={`font-mono text-[13px] uppercase py-[12px] transition-colors ${
                 activeTab === tab
                   ? 'text-[var(--color-foreground)] border-b-2 border-[#FACC15]'
@@ -172,39 +274,53 @@ export default function MeetingsList() {
               </tr>
             </thead>
             <tbody>
-              {meetings.map((meeting) => (
-                <tr
-                  key={meeting.id}
-                  onClick={() => navigate(`/meetings/${meeting.id}`)}
-                  className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-background)] cursor-pointer transition-colors"
-                >
-                  <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-foreground)] font-medium">
-                    {meeting.name}
-                  </td>
-                  <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-muted-foreground)] font-mono">
-                    {meeting.course}
-                  </td>
-                  <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-muted-foreground)] font-mono">
-                    {meeting.date}
-                  </td>
-                  <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-muted-foreground)] font-mono">
-                    {meeting.time}
-                  </td>
-                  <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-muted-foreground)]">
-                    {meeting.location}
-                  </td>
-                  <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-foreground)] font-medium">
-                    {meeting.attendees}
-                  </td>
-                  <td className="px-[16px] py-[16px]">
-                    <span
-                      className={`inline-flex px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium font-mono ${meeting.statusColor}`}
-                    >
-                      {meeting.status}
-                    </span>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-[16px] py-[32px] text-center text-[14px] text-[var(--color-muted-foreground)]">
+                    Loading...
                   </td>
                 </tr>
-              ))}
+              ) : meetings.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-[16px] py-[32px] text-center text-[14px] text-[var(--color-muted-foreground)]">
+                    No meetings found.
+                  </td>
+                </tr>
+              ) : (
+                meetings.map((meeting) => (
+                  <tr
+                    key={meeting.id}
+                    onClick={() => navigate(`/meetings/${meeting.id}`)}
+                    className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-background)] cursor-pointer transition-colors"
+                  >
+                    <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-foreground)] font-medium">
+                      {meeting.title}
+                    </td>
+                    <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-muted-foreground)] font-mono">
+                      {meeting.course}
+                    </td>
+                    <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-muted-foreground)] font-mono">
+                      {meeting.meeting_date}
+                    </td>
+                    <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-muted-foreground)] font-mono">
+                      {meeting.time}
+                    </td>
+                    <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-muted-foreground)]">
+                      {meeting.location}
+                    </td>
+                    <td className="px-[16px] py-[16px] text-[14px] text-[var(--color-foreground)] font-medium">
+                      {meeting.attendees}
+                    </td>
+                    <td className="px-[16px] py-[16px]">
+                      <span
+                        className={`inline-flex px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium font-mono ${getStatusColor(meeting.status)}`}
+                      >
+                        {meeting.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -213,13 +329,23 @@ export default function MeetingsList() {
       {/* Pagination */}
       <div className="border-t border-[var(--color-border)] bg-[var(--color-background)] px-[32px] py-[16px] flex items-center justify-between">
         <p className="text-[14px] text-[var(--color-muted-foreground)]">
-          Showing 1-7 of 7 meetings
+          {total === 0
+            ? 'No meetings'
+            : `Showing ${showingFrom}-${showingTo} of ${total} meetings`}
         </p>
         <div className="flex gap-[8px]">
-          <button className="px-[12px] py-[6px] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-muted-foreground)] hover:bg-[var(--color-background)] transition-colors disabled:opacity-50" disabled>
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="px-[12px] py-[6px] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-muted-foreground)] hover:bg-[var(--color-background)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Previous
           </button>
-          <button className="px-[12px] py-[6px] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-muted-foreground)] hover:bg-[var(--color-background)] transition-colors disabled:opacity-50" disabled>
+          <button
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            className="px-[12px] py-[6px] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-muted-foreground)] hover:bg-[var(--color-background)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Next
           </button>
         </div>
@@ -253,6 +379,8 @@ export default function MeetingsList() {
                   <input
                     type="text"
                     placeholder="Enter meeting name"
+                    value={form.title}
+                    onChange={(e) => handleFormChange('title', e.target.value)}
                     className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
                   />
                 </div>
@@ -262,14 +390,17 @@ export default function MeetingsList() {
                   <label className="block font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[8px] font-medium">
                     COURSE
                   </label>
-                  <select className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]">
-                    <option>Select course</option>
-                    <option>CRS-1001 - Anatomy</option>
-                    <option>CRS-1002 - Cardiology</option>
-                    <option>CRS-1003 - Pharmacology</option>
-                    <option>CRS-1004 - Ethics</option>
-                    <option>CRS-1005 - Surgery</option>
-                    <option>CRS-1006 - Neurology</option>
+                  <select
+                    value={form.course_id}
+                    onChange={(e) => handleFormChange('course_id', e.target.value)}
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                  >
+                    <option value="">Select course</option>
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.course_number} - {c.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -280,6 +411,8 @@ export default function MeetingsList() {
                   </label>
                   <input
                     type="date"
+                    value={form.meeting_date}
+                    onChange={(e) => handleFormChange('meeting_date', e.target.value)}
                     className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
                   />
                 </div>
@@ -292,6 +425,8 @@ export default function MeetingsList() {
                     </label>
                     <input
                       type="time"
+                      value={form.start_time}
+                      onChange={(e) => handleFormChange('start_time', e.target.value)}
                       className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
                     />
                   </div>
@@ -301,6 +436,8 @@ export default function MeetingsList() {
                     </label>
                     <input
                       type="time"
+                      value={form.end_time}
+                      onChange={(e) => handleFormChange('end_time', e.target.value)}
                       className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
                     />
                   </div>
@@ -314,6 +451,8 @@ export default function MeetingsList() {
                   <input
                     type="text"
                     placeholder="Enter location"
+                    value={form.location}
+                    onChange={(e) => handleFormChange('location', e.target.value)}
                     className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
                   />
                 </div>
@@ -326,6 +465,8 @@ export default function MeetingsList() {
                   <input
                     type="text"
                     placeholder="Enter subject or topic"
+                    value={form.subject}
+                    onChange={(e) => handleFormChange('subject', e.target.value)}
                     className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
                   />
                 </div>
@@ -335,13 +476,17 @@ export default function MeetingsList() {
                   <label className="block font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[8px] font-medium">
                     PRESENTER
                   </label>
-                  <select className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]">
-                    <option>Select presenter</option>
-                    <option>Dr. Sarah Mitchell</option>
-                    <option>Dr. James Thompson</option>
-                    <option>Dr. Emily Rodriguez</option>
-                    <option>Dr. Michael Chen</option>
-                    <option>Dr. Amanda Foster</option>
+                  <select
+                    value={form.presenter_id}
+                    onChange={(e) => handleFormChange('presenter_id', e.target.value)}
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                  >
+                    <option value="">Select presenter</option>
+                    {people.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.first_name} {p.last_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -354,6 +499,8 @@ export default function MeetingsList() {
                     type="number"
                     step="0.5"
                     placeholder="0.0"
+                    value={form.cme_credits}
+                    onChange={(e) => handleFormChange('cme_credits', e.target.value)}
                     className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
                   />
                 </div>
@@ -366,6 +513,8 @@ export default function MeetingsList() {
                   <input
                     type="number"
                     placeholder="0"
+                    value={form.expected_attendees}
+                    onChange={(e) => handleFormChange('expected_attendees', e.target.value)}
                     className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
                   />
                 </div>
@@ -378,6 +527,8 @@ export default function MeetingsList() {
                   <textarea
                     rows={3}
                     placeholder="Enter meeting description"
+                    value={form.description}
+                    onChange={(e) => handleFormChange('description', e.target.value)}
                     className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15] resize-none"
                   />
                 </div>
@@ -390,6 +541,8 @@ export default function MeetingsList() {
                   <textarea
                     rows={3}
                     placeholder="Enter additional notes"
+                    value={form.notes}
+                    onChange={(e) => handleFormChange('notes', e.target.value)}
                     className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15] resize-none"
                   />
                 </div>
@@ -404,8 +557,12 @@ export default function MeetingsList() {
               >
                 Cancel
               </button>
-              <button className="px-[16px] py-[10px] bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-[6px] text-[14px] font-medium hover:opacity-90 transition-opacity">
-                Schedule Meeting
+              <button
+                onClick={handleCreateMeeting}
+                disabled={submitting}
+                className="px-[16px] py-[10px] bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-[6px] text-[14px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {submitting ? 'Scheduling...' : 'Schedule Meeting'}
               </button>
             </div>
           </div>

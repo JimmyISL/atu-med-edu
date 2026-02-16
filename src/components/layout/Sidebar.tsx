@@ -8,7 +8,6 @@ import {
   Award,
   FileCheck,
   Settings,
-  ChevronsUpDown,
   LogOut,
 } from 'lucide-react';
 
@@ -55,14 +54,16 @@ export function Sidebar() {
     <div className="w-[256px] h-full flex flex-col bg-[var(--color-sidebar)] border-r border-[var(--color-sidebar-border)]">
       {/* Header */}
       <div className="p-[8px]">
-        <div className="flex items-center gap-[12px] mb-[8px]">
+        <div className="flex items-center gap-[12px] mb-[4px]">
           <div className="w-[32px] h-[32px] bg-[#FACC15] rounded-[4px] flex-shrink-0"></div>
           <span className="font-headline text-[16px] font-bold tracking-[2px] text-[var(--color-sidebar-foreground)]">
             ATU MedEd
           </span>
         </div>
-        <div className="flex items-center justify-center p-[4px]">
-          <ChevronsUpDown className="w-[16px] h-[16px] text-[var(--color-sidebar-foreground)]" />
+        <div className="px-[8px] pb-[4px]">
+          <span className="font-mono text-[10px] text-[var(--color-muted-foreground)] tracking-wide">
+            Inspired by NeuroPro
+          </span>
         </div>
       </div>
 

@@ -37,6 +37,7 @@ export default function ActivitiesList() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const fetchActivities = useCallback(() => {
     setLoading(true);
@@ -80,6 +81,10 @@ export default function ActivitiesList() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError('');
+    if (!form.name.trim()) { setFormError('Activity name is required.'); return; }
+    if (!form.activity_date) { setFormError('Activity date is required.'); return; }
+
     setSubmitting(true);
     try {
       await api.cme.create({
@@ -89,9 +94,10 @@ export default function ActivitiesList() {
       });
       setShowModal(false);
       setForm(INITIAL_FORM);
+      setFormError('');
       fetchActivities();
-    } catch {
-      // keep modal open on error
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to save activity.');
     } finally {
       setSubmitting(false);
     }
@@ -137,7 +143,7 @@ export default function ActivitiesList() {
             </p>
           </div>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => { setFormError(''); setShowModal(true); }}
             className="flex items-center gap-[8px] rounded-[8px] bg-[var(--color-primary)] px-[16px] py-[10px] text-[14px] font-medium text-[var(--color-primary-foreground)] transition-colors hover:opacity-90"
           >
             <Plus className="h-[16px] w-[16px]" />
@@ -310,6 +316,11 @@ export default function ActivitiesList() {
 
             {/* Modal Body */}
             <form onSubmit={handleSubmit} className="space-y-[16px] px-[24px] py-[20px]">
+              {formError && (
+                <div className="rounded-[6px] border border-red-300 bg-red-50 px-[16px] py-[12px] text-[13px] font-mono text-red-600">
+                  {formError}
+                </div>
+              )}
               {/* Name */}
               <div>
                 <label className="mb-[6px] block text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">

@@ -82,6 +82,7 @@ export default function MeetingsList() {
 
   const [form, setForm] = useState(initialFormState);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce search input by 300ms
@@ -160,14 +161,18 @@ export default function MeetingsList() {
   }
 
   async function handleCreateMeeting() {
+    setFormError('');
+    if (!form.title.trim()) { setFormError('Meeting name is required.'); return; }
+    if (!form.meeting_date) { setFormError('Date is required.'); return; }
+
     setSubmitting(true);
     try {
       await api.meetings.create({
         title: form.title,
         course_id: form.course_id ? Number(form.course_id) : undefined,
         meeting_date: form.meeting_date,
-        start_time: form.start_time,
-        end_time: form.end_time,
+        start_time: form.start_time || undefined,
+        end_time: form.end_time || undefined,
         location: form.location,
         subject: form.subject,
         presenter_id: form.presenter_id ? Number(form.presenter_id) : undefined,
@@ -178,9 +183,10 @@ export default function MeetingsList() {
       });
       setShowScheduleModal(false);
       setForm(initialFormState);
+      setFormError('');
       fetchMeetings();
-    } catch {
-      // keep modal open on error
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to schedule meeting.');
     } finally {
       setSubmitting(false);
     }
@@ -203,7 +209,7 @@ export default function MeetingsList() {
           </p>
         </div>
         <button
-          onClick={() => setShowScheduleModal(true)}
+          onClick={() => { setFormError(''); setShowScheduleModal(true); }}
           className="flex items-center gap-[8px] bg-[var(--color-primary)] text-[var(--color-primary-foreground)] px-[16px] py-[10px] rounded-[6px] font-medium text-[14px] hover:opacity-90 transition-opacity"
         >
           <Plus className="w-[16px] h-[16px]" />
@@ -370,6 +376,11 @@ export default function MeetingsList() {
 
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto px-[24px] py-[24px]">
+              {formError && (
+                <div className="mb-[16px] rounded-[6px] border border-red-300 bg-red-50 px-[16px] py-[12px] text-[13px] font-mono text-red-600">
+                  {formError}
+                </div>
+              )}
               <div className="space-y-[20px]">
                 {/* Meeting Name */}
                 <div>

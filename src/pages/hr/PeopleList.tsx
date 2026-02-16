@@ -73,6 +73,7 @@ export default function PeopleList() {
   const [limit] = useState(20);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
   const [form, setForm] = useState(INITIAL_FORM);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -144,6 +145,10 @@ export default function PeopleList() {
   };
 
   const handleSubmit = async () => {
+    setFormError('');
+    if (!form.first_name.trim()) { setFormError('First name is required.'); return; }
+    if (!form.last_name.trim()) { setFormError('Last name is required.'); return; }
+
     setSubmitting(true);
     try {
       await api.people.create({
@@ -161,9 +166,10 @@ export default function PeopleList() {
       });
       setShowModal(false);
       setForm(INITIAL_FORM);
+      setFormError('');
       await fetchPeople();
-    } catch (err) {
-      console.error('Failed to create person:', err);
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to add person.');
     } finally {
       setSubmitting(false);
     }
@@ -186,7 +192,7 @@ export default function PeopleList() {
           </p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => { setFormError(''); setShowModal(true); }}
           className="rounded-[6px] bg-[var(--color-primary)] px-[16px] py-[8px] font-mono text-[14px] font-medium text-[var(--color-primary-foreground)] transition-opacity hover:opacity-90"
         >
           + ADD PERSON
@@ -342,6 +348,11 @@ export default function PeopleList() {
 
             {/* Modal Body */}
             <div className="max-h-[calc(100vh-200px)] overflow-y-auto px-[24px] py-[24px]">
+              {formError && (
+                <div className="mb-[16px] rounded-[6px] border border-red-300 bg-red-50 px-[16px] py-[12px] text-[13px] font-mono text-red-600">
+                  {formError}
+                </div>
+              )}
               <div className="flex flex-col gap-[16px]">
                 {/* Title, First Name, Last Name Row */}
                 <div className="grid grid-cols-[120px_1fr_1fr] gap-[12px]">

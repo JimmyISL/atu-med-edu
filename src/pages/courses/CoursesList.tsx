@@ -96,6 +96,7 @@ export default function CoursesList() {
   const [people, setPeople] = useState<Person[]>([]);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce search input by 300ms
@@ -155,6 +156,9 @@ export default function CoursesList() {
   };
 
   const handleSubmit = async () => {
+    setFormError('');
+    if (!formData.name.trim()) { setFormError('Course name is required.'); return; }
+
     setSubmitting(true);
     try {
       const payload: Record<string, unknown> = {
@@ -181,9 +185,10 @@ export default function CoursesList() {
       await api.courses.create(payload);
       setIsModalOpen(false);
       setFormData(initialFormData);
+      setFormError('');
       await fetchCourses();
-    } catch (err) {
-      console.error('Failed to create course:', err);
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to create course.');
     } finally {
       setSubmitting(false);
     }
@@ -219,7 +224,7 @@ export default function CoursesList() {
           </p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => { setFormError(''); setIsModalOpen(true); }}
           className="font-mono text-[13px] px-[16px] py-[8px] bg-[#FACC15] text-black rounded-[4px] flex items-center gap-[8px] hover:bg-[#FACC15]/90 font-bold tracking-[0.05em]"
         >
           <Plus className="w-[16px] h-[16px]" />
@@ -377,6 +382,11 @@ export default function CoursesList() {
 
             {/* Modal Body */}
             <div className="px-[24px] py-[20px] space-y-[20px]">
+              {formError && (
+                <div className="rounded-[6px] border border-red-300 bg-red-50 px-[16px] py-[12px] text-[13px] font-mono text-red-600">
+                  {formError}
+                </div>
+              )}
               {/* Course Name */}
               <div>
                 <label className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase block mb-[8px]">

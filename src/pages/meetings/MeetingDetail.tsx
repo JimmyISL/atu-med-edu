@@ -9,7 +9,7 @@ interface Attendee {
   email: string;
   department: string;
   person_role: string;
-  attended: boolean;
+  attended: boolean | null;
 }
 
 interface Person {
@@ -69,14 +69,22 @@ const labelCls = 'font-mono text-[11px] font-medium uppercase tracking-wide text
 const inputCls = 'w-full rounded-[6px] border border-[var(--color-border)] bg-[var(--color-input)] px-[12px] py-[8px] font-mono text-[13px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-accent)]';
 const deleteBtnCls = 'rounded-[6px] border border-red-300 bg-red-50 px-[16px] py-[8px] font-mono text-[13px] font-medium text-red-600 hover:bg-red-100';
 
-function getAttendanceLabel(attended: boolean): string {
-  return attended ? 'PRESENT' : 'ABSENT';
+function getAttendanceLabel(attended: boolean | null): string {
+  if (attended === true) return 'PRESENT';
+  if (attended === false) return 'ABSENT';
+  return 'PENDING';
 }
 
-function getAttendanceColor(attended: boolean): string {
-  return attended
-    ? 'text-green-600 bg-green-50'
-    : 'text-red-600 bg-red-50';
+function getAttendanceColor(attended: boolean | null): string {
+  if (attended === true) return 'text-green-600 bg-green-50';
+  if (attended === false) return 'text-red-600 bg-red-50';
+  return 'text-amber-600 bg-amber-50';
+}
+
+function nextAttendanceState(attended: boolean | null): boolean | null {
+  if (attended === null) return true;   // PENDING → PRESENT
+  if (attended === true) return false;  // PRESENT → ABSENT
+  return null;                          // ABSENT → PENDING
 }
 
 function getStatusColor(status: string): string {
@@ -297,10 +305,11 @@ export default function MeetingDetail() {
     }
   };
 
-  const handleToggleAttendance = async (personId: number, currentAttended: boolean) => {
+  const handleToggleAttendance = async (personId: number, currentAttended: boolean | null) => {
     if (!id) return;
     try {
-      await api.meetings.toggleAttendance(Number(id), personId, !currentAttended);
+      const next = nextAttendanceState(currentAttended);
+      await api.meetings.toggleAttendance(Number(id), personId, next);
       fetchMeeting();
     } catch (err) {
       console.error('Failed to toggle attendance:', err);
@@ -324,7 +333,8 @@ export default function MeetingDetail() {
   }
 
   const attendees = meeting.attendees || [];
-  const presentCount = attendees.filter((a) => a.attended).length;
+  const presentCount = attendees.filter((a) => a.attended === true).length;
+  const evaluatedCount = attendees.filter((a) => a.attended !== null).length;
   const cmeTypeLabel = meeting.course_cme_type || 'Category 1';
 
   return (
@@ -747,7 +757,7 @@ export default function MeetingDetail() {
                           <button
                             onClick={(e) => { e.stopPropagation(); handleToggleAttendance(attendee.person_id, attendee.attended); }}
                             className={`inline-flex px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium font-mono cursor-pointer transition-opacity hover:opacity-80 ${getAttendanceColor(attendee.attended)}`}
-                            title={attendee.attended ? 'Mark as absent' : 'Mark as present'}
+                            title={attendee.attended === null ? 'Mark as present' : attendee.attended ? 'Mark as absent' : 'Reset to pending'}
                           >
                             {getAttendanceLabel(attendee.attended)}
                           </button>
@@ -914,12 +924,12 @@ export default function MeetingDetail() {
                   </p>
                   <div className="space-y-[4px]">
                     <p className="text-[14px] text-amber-600 font-medium">
-                      {presentCount === attendees.length ? 'COMPLETE' : 'PENDING'} — {presentCount} of {attendees.length} evaluated
+                      {evaluatedCount === attendees.length ? 'COMPLETE' : 'PENDING'} — {evaluatedCount} of {attendees.length} evaluated
                     </p>
                     <div className="w-full h-[6px] bg-[var(--color-background)] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-amber-500 rounded-full"
-                        style={{ width: attendees.length > 0 ? `${Math.round((presentCount / attendees.length) * 100)}%` : '0%' }}
+                        style={{ width: attendees.length > 0 ? `${Math.round((evaluatedCount / attendees.length) * 100)}%` : '0%' }}
                       />
                     </div>
                   </div>

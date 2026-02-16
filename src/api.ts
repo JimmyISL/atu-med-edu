@@ -70,7 +70,7 @@ export const api = {
       request<any>(`/meetings/${meetingId}/attendees`, { method: 'POST', body: JSON.stringify(data) }),
     removeAttendee: (meetingId: number, personId: number) =>
       request<any>(`/meetings/${meetingId}/attendees/${personId}`, { method: 'DELETE' }),
-    toggleAttendance: (meetingId: number, personId: number, attended: boolean) =>
+    toggleAttendance: (meetingId: number, personId: number, attended: boolean | null) =>
       request<any>(`/meetings/${meetingId}/attendees/${personId}`, { method: 'PATCH', body: JSON.stringify({ attended }) }),
   },
 

@@ -849,7 +849,7 @@ export default function MeetingDetail() {
                     COURSE NR
                   </p>
                   <p className="text-[14px] text-[var(--color-foreground)] font-mono">
-                    {meeting.course}
+                    {meeting.course || 'None'}
                   </p>
                 </div>
 
@@ -882,32 +882,40 @@ export default function MeetingDetail() {
               </div>
 
               <div className="px-[20px] py-[20px] space-y-[16px]">
-                <div>
-                  <p className="font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[6px]">
-                    CME TYPE
+                {!meeting.course_id ? (
+                  <p className="text-[14px] text-[var(--color-muted-foreground)]">
+                    None — no course linked to this meeting.
                   </p>
-                  <span className="inline-flex px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium font-mono text-[#854D0E] bg-[#FEF3C7]">
-                    {cmeTypeLabel}
-                  </span>
-                </div>
+                ) : (
+                  <>
+                    <div>
+                      <p className="font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[6px]">
+                        CME TYPE
+                      </p>
+                      <span className="inline-flex px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium font-mono text-[#854D0E] bg-[#FEF3C7]">
+                        {cmeTypeLabel}
+                      </span>
+                    </div>
 
-                <div>
-                  <p className="font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[6px]">
-                    CREDITS AVAILABLE
-                  </p>
-                  <p className="text-[14px] text-[var(--color-foreground)]">
-                    {meeting.cme_credits} AMA PRA {cmeTypeLabel} Credits
-                  </p>
-                </div>
+                    <div>
+                      <p className="font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[6px]">
+                        CREDITS AVAILABLE
+                      </p>
+                      <p className="text-[14px] text-[var(--color-foreground)]">
+                        {meeting.cme_credits} AMA PRA {cmeTypeLabel} Credits
+                      </p>
+                    </div>
 
-                <div>
-                  <p className="font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[6px]">
-                    CME VALUE
-                  </p>
-                  <p className="text-[14px] text-[var(--color-foreground)] font-medium">
-                    ${(meeting.cme_credits * 200).toLocaleString()}
-                  </p>
-                </div>
+                    <div>
+                      <p className="font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[6px]">
+                        CME VALUE
+                      </p>
+                      <p className="text-[14px] text-[var(--color-foreground)] font-medium">
+                        ${(meeting.cme_credits * 200).toLocaleString()}
+                      </p>
+                    </div>
+                  </>
+                )}
 
                 <div>
                   <p className="font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[6px]">
@@ -924,14 +932,18 @@ export default function MeetingDetail() {
                   </p>
                   <div className="space-y-[4px]">
                     <p className="text-[14px] text-amber-600 font-medium">
-                      {evaluatedCount === attendees.length ? 'COMPLETE' : 'PENDING'} — {evaluatedCount} of {attendees.length} evaluated
+                      {attendees.length === 0
+                        ? 'No attendees'
+                        : `${evaluatedCount === attendees.length ? 'COMPLETE' : 'PENDING'} — ${evaluatedCount} of ${attendees.length} evaluated`}
                     </p>
-                    <div className="w-full h-[6px] bg-[var(--color-background)] rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-amber-500 rounded-full"
-                        style={{ width: attendees.length > 0 ? `${Math.round((evaluatedCount / attendees.length) * 100)}%` : '0%' }}
-                      />
-                    </div>
+                    {attendees.length > 0 && (
+                      <div className="w-full h-[6px] bg-[var(--color-background)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-amber-500 rounded-full"
+                          style={{ width: `${Math.round((evaluatedCount / attendees.length) * 100)}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

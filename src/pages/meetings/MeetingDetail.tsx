@@ -578,7 +578,7 @@ export default function MeetingDetail() {
                     : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
                 }`}
               >
-                From HR
+                Existing People
               </button>
               <button
                 onClick={() => setAddTab('quick')}
@@ -588,7 +588,7 @@ export default function MeetingDetail() {
                     : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
                 }`}
               >
-                Quick Add
+                New Person
               </button>
             </div>
 
@@ -695,7 +695,7 @@ export default function MeetingDetail() {
                   disabled={!quickForm.first_name || !quickForm.last_name || addingAttendee}
                   className="rounded-[6px] bg-[#2596be] px-[16px] py-[8px] font-mono text-[13px] font-medium text-[#09090B] transition-colors hover:bg-[#1e7da6] disabled:opacity-50"
                 >
-                  {addingAttendee ? 'Adding...' : 'Quick Add'}
+                  {addingAttendee ? 'Adding...' : 'Create & Add'}
                 </button>
               )}
             </div>

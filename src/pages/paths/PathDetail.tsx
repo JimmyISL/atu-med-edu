@@ -437,7 +437,7 @@ export default function PathDetail() {
                     : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
                 }`}
               >
-                From HR
+                Existing People
               </button>
               <button
                 onClick={() => setAddTab('quick')}
@@ -447,7 +447,7 @@ export default function PathDetail() {
                     : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
                 }`}
               >
-                Quick Add
+                New Person
               </button>
             </div>
 
@@ -554,7 +554,7 @@ export default function PathDetail() {
                   disabled={!quickForm.first_name || !quickForm.last_name || addingTrainee}
                   className="rounded-[6px] bg-[#2596be] px-[16px] py-[8px] font-mono text-[13px] font-medium text-[#09090B] transition-colors hover:bg-[#1e7da6] disabled:opacity-50"
                 >
-                  {addingTrainee ? 'Enrolling...' : 'Quick Add'}
+                  {addingTrainee ? 'Enrolling...' : 'Create & Enroll'}
                 </button>
               )}
             </div>

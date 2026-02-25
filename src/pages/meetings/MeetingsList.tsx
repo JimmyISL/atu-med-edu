@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Plus, X } from 'lucide-react';
+import { Search, Plus, X, ChevronDown } from 'lucide-react';
 import { api } from '../../api';
 
 interface Meeting {
@@ -93,6 +93,35 @@ export default function MeetingsList() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Presenter search state
+  const [presenterSearch, setPresenterSearch] = useState('');
+  const [presenterDropdownOpen, setPresenterDropdownOpen] = useState(false);
+  const presenterRef = useRef<HTMLDivElement>(null);
+
+  const filteredPeople = useMemo(() => {
+    const q = presenterSearch.toLowerCase();
+    if (!q) return people;
+    return people.filter((p) =>
+      `${p.first_name} ${p.last_name}`.toLowerCase().includes(q)
+    );
+  }, [people, presenterSearch]);
+
+  const selectedPresenter = useMemo(() => {
+    if (!form.presenter_id) return null;
+    return people.find((p) => String(p.id) === form.presenter_id) || null;
+  }, [people, form.presenter_id]);
+
+  // Close presenter dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (presenterRef.current && !presenterRef.current.contains(e.target as Node)) {
+        setPresenterDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Sync state to URL search params
   useEffect(() => {
@@ -501,22 +530,75 @@ export default function MeetingsList() {
                 </div>
 
                 {/* Presenter */}
-                <div>
+                <div ref={presenterRef} className="relative">
                   <label className="block font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[8px] font-medium">
                     PRESENTER
                   </label>
-                  <select
-                    value={form.presenter_id}
-                    onChange={(e) => handleFormChange('presenter_id', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
+                  <div
+                    className={`flex items-center w-full bg-[var(--color-input)] border rounded-[6px] transition-colors ${
+                      presenterDropdownOpen
+                        ? 'border-[#2596be] ring-2 ring-[#2596be]'
+                        : 'border-[var(--color-border)]'
+                    }`}
                   >
-                    <option value="">Select presenter</option>
-                    {people.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.first_name} {p.last_name}
-                      </option>
-                    ))}
-                  </select>
+                    <Search className="ml-[12px] h-[14px] w-[14px] text-[var(--color-muted-foreground)] flex-shrink-0" />
+                    <input
+                      type="text"
+                      placeholder={selectedPresenter ? `${selectedPresenter.first_name} ${selectedPresenter.last_name}` : 'Search for presenter...'}
+                      value={presenterSearch}
+                      onChange={(e) => {
+                        setPresenterSearch(e.target.value);
+                        setPresenterDropdownOpen(true);
+                        if (!e.target.value && form.presenter_id) {
+                          handleFormChange('presenter_id', '');
+                        }
+                      }}
+                      onFocus={() => setPresenterDropdownOpen(true)}
+                      className="flex-1 px-[8px] py-[10px] bg-transparent text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none"
+                    />
+                    {form.presenter_id ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleFormChange('presenter_id', '');
+                          setPresenterSearch('');
+                        }}
+                        className="mr-[8px] p-[4px] rounded-[4px] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-background)] transition-colors"
+                      >
+                        <X className="h-[14px] w-[14px]" />
+                      </button>
+                    ) : (
+                      <ChevronDown className="mr-[12px] h-[14px] w-[14px] text-[var(--color-muted-foreground)] flex-shrink-0" />
+                    )}
+                  </div>
+                  {presenterDropdownOpen && (
+                    <div className="absolute z-10 mt-[4px] w-full max-h-[200px] overflow-auto rounded-[6px] border border-[var(--color-border)] bg-[var(--color-card)] shadow-lg">
+                      {filteredPeople.length === 0 ? (
+                        <p className="px-[12px] py-[10px] text-[13px] text-[var(--color-muted-foreground)] text-center">
+                          No matching people found
+                        </p>
+                      ) : (
+                        filteredPeople.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              handleFormChange('presenter_id', String(p.id));
+                              setPresenterSearch('');
+                              setPresenterDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-[12px] py-[8px] text-[14px] transition-colors ${
+                              String(p.id) === form.presenter_id
+                                ? 'bg-[#2596be]/10 text-[#2596be] font-medium'
+                                : 'text-[var(--color-foreground)] hover:bg-[var(--color-background)]'
+                            }`}
+                          >
+                            {p.first_name} {p.last_name}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* CME Credits */}

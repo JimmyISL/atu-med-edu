@@ -137,6 +137,8 @@ export const api = {
     getActions: (id: number) => request<any[]>(`/paths/${id}/actions`),
     createAction: (id: number, data: any) =>
       request<any>(`/paths/${id}/actions`, { method: 'POST', body: JSON.stringify(data) }),
+    syncProgress: (pathId: number, traineePathId: number) =>
+      request<any>(`/paths/${pathId}/progress/${traineePathId}/sync`, { method: 'POST' }),
     getPipeline: (id: number) => request<any>(`/paths/${id}/pipeline`),
   },
 

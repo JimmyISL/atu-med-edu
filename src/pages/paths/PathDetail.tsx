@@ -904,11 +904,24 @@ export default function PathDetail() {
                             <td className="px-[16px] py-[14px]">
                               <div className="flex items-center gap-[8px]">
                                 <div className="w-[80px] h-[6px] bg-[var(--color-background)] rounded-full overflow-hidden">
-                                  <div className="h-full bg-[#2596be] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                  <div
+                                    className={`h-full rounded-full transition-all ${pct === 100 ? 'bg-green-500' : 'bg-[#2596be]'}`}
+                                    style={{ width: `${pct}%` }}
+                                  />
                                 </div>
                                 <span className="font-mono text-[12px] text-[var(--color-muted-foreground)]">
-                                  {trainee.progress_count}/{trainee.total_steps}
+                                  {trainee.total_steps > 0 ? `${trainee.progress_count}/${trainee.total_steps}` : 'N/A'}
                                 </span>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleExpandTrainee(trainee); }}
+                                  className={`ml-[4px] font-mono text-[10px] uppercase tracking-wide px-[6px] py-[2px] rounded-[3px] transition-colors ${
+                                    isExpanded
+                                      ? 'text-[#2596be] bg-[#2596be]/10'
+                                      : 'text-[var(--color-muted-foreground)] bg-[var(--color-background)] hover:text-[#2596be] hover:bg-[#2596be]/10'
+                                  }`}
+                                >
+                                  {isExpanded ? 'HIDE' : 'MANAGE'}
+                                </button>
                               </div>
                             </td>
                             <td className="px-[16px] py-[14px] text-[14px] text-[var(--color-muted-foreground)]">
@@ -932,7 +945,43 @@ export default function PathDetail() {
                                 {isLoadingThis ? (
                                   <p className="font-mono text-[12px] text-[var(--color-muted-foreground)]">Loading progress...</p>
                                 ) : progress.length === 0 ? (
-                                  <p className="font-mono text-[12px] text-[var(--color-muted-foreground)]">No steps defined for this path yet.</p>
+                                  steps.length === 0 ? (
+                                    <div className="flex items-center gap-[12px] py-[8px]">
+                                      <div className="w-[8px] h-[8px] rounded-full bg-amber-400" />
+                                      <div>
+                                        <p className="text-[13px] text-[var(--color-foreground)] font-medium">No courses added to this path yet</p>
+                                        <p className="text-[12px] text-[var(--color-muted-foreground)] mt-[2px]">
+                                          Add courses in the <button onClick={(e) => { e.stopPropagation(); navigate(`/paths/${id}/builder`); }} className="text-[#2596be] hover:underline font-medium">Path Builder</button> first, then progress can be tracked.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-between py-[8px]">
+                                      <div className="flex items-center gap-[12px]">
+                                        <div className="w-[8px] h-[8px] rounded-full bg-blue-400" />
+                                        <div>
+                                          <p className="text-[13px] text-[var(--color-foreground)] font-medium">Progress tracking not initialized</p>
+                                          <p className="text-[12px] text-[var(--color-muted-foreground)] mt-[2px]">
+                                            This trainee was enrolled before courses were added. Sync to start tracking.
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <button
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          try {
+                                            await api.paths.syncProgress(Number(id), trainee.id);
+                                            const freshProgress = await api.paths.getTraineeProgress(Number(id), trainee.id);
+                                            setTraineeProgress((prev) => ({ ...prev, [trainee.id]: freshProgress }));
+                                            fetchPath();
+                                          } catch (err) { console.error('Sync failed:', err); }
+                                        }}
+                                        className="inline-flex items-center gap-[6px] rounded-[6px] bg-[#2596be] px-[12px] py-[6px] font-mono text-[11px] font-bold text-[#09090B] uppercase tracking-wide transition-colors hover:bg-[#1e7da6]"
+                                      >
+                                        SYNC PROGRESS
+                                      </button>
+                                    </div>
+                                  )
                                 ) : (
                                   <div className="space-y-[6px]">
                                     <p className="font-mono text-[11px] uppercase font-medium text-[var(--color-muted-foreground)] mb-[8px]">

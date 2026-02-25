@@ -12,10 +12,21 @@ router.get('/', async (req, res) => {
     const params: (string | number)[] = [];
     let paramIndex = 1;
 
-    if (status && status !== 'all') {
+    // Date-aware filtering based on status
+    if (status === 'SCHEDULED') {
+      // Upcoming: SCHEDULED status AND date is today or future
       conditions.push(`m.status = $${paramIndex++}`);
-      params.push(String(status).toUpperCase());
+      params.push('SCHEDULED');
+      conditions.push(`m.meeting_date >= CURRENT_DATE`);
+    } else if (status === 'COMPLETED') {
+      // Past: COMPLETED status OR date is in the past (regardless of status)
+      conditions.push(`(m.status = 'COMPLETED' OR m.meeting_date < CURRENT_DATE)`);
+    } else if (status === 'CANCELLED') {
+      conditions.push(`m.status = $${paramIndex++}`);
+      params.push('CANCELLED');
     }
+    // For 'all' or no status, don't add status filter
+
     if (search) {
       conditions.push(`(m.title ILIKE $${paramIndex} OR m.location ILIKE $${paramIndex})`);
       params.push(`%${search}%`);
@@ -27,6 +38,11 @@ router.get('/', async (req, res) => {
     const countResult = await pool.query(`SELECT COUNT(*) FROM meetings m ${where}`, params);
     const total = Number(countResult.rows[0].count);
 
+    // Sort order: upcoming (SCHEDULED) sorts ASC, everything else sorts DESC
+    const orderBy = status === 'SCHEDULED'
+      ? 'ORDER BY m.meeting_date ASC, m.start_time ASC'
+      : 'ORDER BY m.meeting_date DESC, m.start_time DESC';
+
     const result = await pool.query(
       `SELECT m.*,
               c.course_number as course,
@@ -35,7 +51,7 @@ router.get('/', async (req, res) => {
        FROM meetings m
        LEFT JOIN courses c ON m.course_id = c.id
        ${where}
-       ORDER BY m.meeting_date DESC
+       ${orderBy}
        LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
       [...params, Number(limit), offset]
     );

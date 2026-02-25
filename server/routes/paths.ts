@@ -345,6 +345,43 @@ router.get('/:id/progress/:traineePathId', async (req, res) => {
   }
 });
 
+// POST /api/paths/:id/progress/:traineePathId/sync - Sync missing progress rows
+router.post('/:id/progress/:traineePathId/sync', async (req, res) => {
+  try {
+    const { id, traineePathId } = req.params;
+
+    // Get all path_steps for this path
+    const stepsResult = await pool.query(
+      'SELECT id FROM path_steps WHERE path_id = $1',
+      [id]
+    );
+
+    // Get existing progress rows for this trainee
+    const existingResult = await pool.query(
+      'SELECT path_step_id FROM trainee_step_progress WHERE trainee_path_id = $1',
+      [traineePathId]
+    );
+    const existingStepIds = new Set(existingResult.rows.map((r: any) => r.path_step_id));
+
+    // Insert missing progress rows
+    let created = 0;
+    for (const step of stepsResult.rows) {
+      if (!existingStepIds.has(step.id)) {
+        await pool.query(
+          'INSERT INTO trainee_step_progress (trainee_path_id, path_step_id) VALUES ($1, $2)',
+          [traineePathId, step.id]
+        );
+        created++;
+      }
+    }
+
+    res.json({ synced: created });
+  } catch (err: any) {
+    console.error('POST /api/paths/:id/progress/:traineePathId/sync error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // PATCH /api/paths/:id/progress/:traineePathId/:stepId - Update step progress
 router.patch('/:id/progress/:traineePathId/:stepId', async (req, res) => {
   try {

@@ -320,12 +320,6 @@ export default function PathDetail() {
           >
             EDIT
           </button>
-          <button
-            onClick={() => navigate(`/paths/${id}/builder`)}
-            className="rounded-[6px] bg-[#2596be] px-[16px] py-[10px] font-mono text-[13px] font-medium text-[#09090B] transition-colors hover:bg-[#1e7da6]"
-          >
-            MANAGE STEPS
-          </button>
         </div>
       </div>
 
@@ -579,13 +573,34 @@ export default function PathDetail() {
                     {distinctPhases}
                   </span>
                 </div>
+                {phaseNumbers.length > 0 && (
+                  <button
+                    onClick={() => navigate(`/paths/${id}/builder`)}
+                    className="inline-flex items-center gap-[6px] rounded-[6px] bg-[#2596be] px-[12px] py-[6px] font-mono text-[11px] font-bold text-[#09090B] uppercase tracking-wide transition-colors hover:bg-[#1e7da6]"
+                  >
+                    <Plus className="h-[14px] w-[14px]" />
+                    EDIT COURSES
+                  </button>
+                )}
               </div>
 
               <div className="px-[20px] py-[20px]">
                 {phaseNumbers.length === 0 ? (
-                  <p className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
-                    No steps configured. Use MANAGE STEPS to build this path.
-                  </p>
+                  <button
+                    onClick={() => navigate(`/paths/${id}/builder`)}
+                    className="w-full rounded-[8px] border-2 border-dashed border-[#2596be]/40 bg-[#2596be]/5 p-[32px] text-center transition-colors hover:bg-[#2596be]/10 hover:border-[#2596be]/60 cursor-pointer"
+                  >
+                    <div className="font-headline text-[18px] font-bold text-[var(--color-foreground)] mb-[8px]">
+                      Build Your Training Path
+                    </div>
+                    <p className="font-mono text-[13px] text-[var(--color-muted-foreground)] max-w-[360px] mx-auto leading-[1.6] mb-[16px]">
+                      Select courses from your catalog and arrange them into sequential phases. Courses within the same phase can be completed in parallel.
+                    </p>
+                    <span className="inline-flex items-center gap-[6px] rounded-[6px] bg-[#2596be] px-[16px] py-[10px] font-mono text-[13px] font-bold text-[#09090B] uppercase tracking-wide">
+                      <Plus className="h-[16px] w-[16px]" />
+                      ADD COURSES
+                    </span>
+                  </button>
                 ) : (
                   <div className="space-y-[4px]">
                     {phaseNumbers.map((phaseNum, phaseIdx) => {

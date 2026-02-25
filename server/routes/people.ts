@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
     let paramIndex = 1;
 
     if (role && role !== 'all') {
-      conditions.push(`role = $${paramIndex++}`);
+      conditions.push(`LOWER(role) = LOWER($${paramIndex++})`);
       params.push(String(role));
     }
     if (status) {

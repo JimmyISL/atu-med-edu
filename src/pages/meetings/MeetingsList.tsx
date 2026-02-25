@@ -244,7 +244,7 @@ export default function MeetingsList() {
               onClick={() => handleTabChange(tab)}
               className={`font-mono text-[13px] uppercase py-[12px] transition-colors ${
                 activeTab === tab
-                  ? 'text-[var(--color-foreground)] border-b-2 border-[#FACC15]'
+                  ? 'text-[var(--color-foreground)] border-b-2 border-[#2596be]'
                   : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
               }`}
             >
@@ -263,7 +263,7 @@ export default function MeetingsList() {
             placeholder="Search meetings..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-[40px] pr-[16px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+            className="w-full pl-[40px] pr-[16px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
           />
         </div>
       </div>
@@ -410,7 +410,7 @@ export default function MeetingsList() {
                     placeholder="Enter meeting name"
                     value={form.title}
                     onChange={(e) => handleFormChange('title', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
                   />
                 </div>
 
@@ -422,7 +422,7 @@ export default function MeetingsList() {
                   <select
                     value={form.course_id}
                     onChange={(e) => handleFormChange('course_id', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
                   >
                     <option value="">Select course</option>
                     {courses.map((c) => (
@@ -442,7 +442,7 @@ export default function MeetingsList() {
                     type="date"
                     value={form.meeting_date}
                     onChange={(e) => handleFormChange('meeting_date', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
                   />
                 </div>
 
@@ -456,7 +456,7 @@ export default function MeetingsList() {
                       type="time"
                       value={form.start_time}
                       onChange={(e) => handleFormChange('start_time', e.target.value)}
-                      className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                      className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
                     />
                   </div>
                   <div>
@@ -467,7 +467,7 @@ export default function MeetingsList() {
                       type="time"
                       value={form.end_time}
                       onChange={(e) => handleFormChange('end_time', e.target.value)}
-                      className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                      className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
                     />
                   </div>
                 </div>
@@ -482,7 +482,7 @@ export default function MeetingsList() {
                     placeholder="Enter location"
                     value={form.location}
                     onChange={(e) => handleFormChange('location', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
                   />
                 </div>
 
@@ -496,7 +496,7 @@ export default function MeetingsList() {
                     placeholder="Enter subject or topic"
                     value={form.subject}
                     onChange={(e) => handleFormChange('subject', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
                   />
                 </div>
 
@@ -508,7 +508,7 @@ export default function MeetingsList() {
                   <select
                     value={form.presenter_id}
                     onChange={(e) => handleFormChange('presenter_id', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
                   >
                     <option value="">Select presenter</option>
                     {people.map((p) => (
@@ -530,7 +530,7 @@ export default function MeetingsList() {
                     placeholder="0.0"
                     value={form.cme_credits}
                     onChange={(e) => handleFormChange('cme_credits', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
                   />
                 </div>
 
@@ -544,7 +544,7 @@ export default function MeetingsList() {
                     placeholder="0"
                     value={form.expected_attendees}
                     onChange={(e) => handleFormChange('expected_attendees', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15]"
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be]"
                   />
                 </div>
 
@@ -558,7 +558,7 @@ export default function MeetingsList() {
                     placeholder="Enter meeting description"
                     value={form.description}
                     onChange={(e) => handleFormChange('description', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15] resize-none"
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be] resize-none"
                   />
                 </div>
 
@@ -572,7 +572,7 @@ export default function MeetingsList() {
                     placeholder="Enter additional notes"
                     value={form.notes}
                     onChange={(e) => handleFormChange('notes', e.target.value)}
-                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#FACC15] resize-none"
+                    className="w-full px-[12px] py-[10px] bg-[var(--color-input)] border border-[var(--color-border)] rounded-[6px] text-[14px] text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[#2596be] resize-none"
                   />
                 </div>
               </div>

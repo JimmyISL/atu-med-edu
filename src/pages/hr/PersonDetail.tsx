@@ -233,7 +233,7 @@ export default function PersonDetail() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-[24px]">
             {/* Avatar */}
-            <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#FACC15]">
+            <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#2596be]">
               <span className="font-headline text-[28px] font-bold text-black">{initials}</span>
             </div>
 
@@ -441,7 +441,7 @@ export default function PersonDetail() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="rounded-[6px] bg-[#FACC15] px-[16px] py-[8px] font-mono text-[13px] font-medium text-black transition-colors hover:bg-[#EAB308] disabled:opacity-50"
+                className="rounded-[6px] bg-[#2596be] px-[16px] py-[8px] font-mono text-[13px] font-medium text-black transition-colors hover:bg-[#1e7da6] disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>

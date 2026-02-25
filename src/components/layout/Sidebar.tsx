@@ -7,6 +7,7 @@ import {
   Calendar,
   Award,
   FileCheck,
+  Route,
   Settings,
   LogOut,
 } from 'lucide-react';
@@ -30,6 +31,7 @@ const navSections: NavSection[] = [
       { icon: Users, label: 'HR / People', path: '/hr' },
       { icon: BookOpen, label: 'Courses', path: '/courses' },
       { icon: Calendar, label: 'Meetings', path: '/meetings' },
+      { icon: Route, label: 'Training Paths', path: '/paths' },
       { icon: Award, label: 'CME', path: '/cme' },
       { icon: FileCheck, label: 'Credentials', path: '/credentials' },
     ],
@@ -55,7 +57,7 @@ export function Sidebar() {
       {/* Header */}
       <div className="p-[8px]">
         <div className="flex items-center gap-[12px] mb-[4px]">
-          <div className="w-[32px] h-[32px] bg-[#FACC15] rounded-[4px] flex-shrink-0"></div>
+          <div className="w-[32px] h-[32px] bg-[#2596be] rounded-[4px] flex-shrink-0"></div>
           <span className="font-headline text-[16px] font-bold tracking-[2px] text-[var(--color-sidebar-foreground)]">
             ATU MedEd
           </span>
@@ -103,7 +105,7 @@ export function Sidebar() {
       <div className="p-[8px]">
         <div className="flex items-center justify-between gap-[8px]">
           <div className="flex items-center gap-[12px] min-w-0">
-            <div className="w-[40px] h-[40px] bg-[#FACC15] rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-[40px] h-[40px] bg-[#2596be] rounded-full flex items-center justify-center flex-shrink-0">
               <span className="font-headline text-[16px] font-bold text-[var(--color-brand-dark)]">
                 {user?.initials ?? '??'}
               </span>

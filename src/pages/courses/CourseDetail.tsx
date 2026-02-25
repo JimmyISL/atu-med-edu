@@ -489,7 +489,7 @@ export default function CourseDetail() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="rounded-[6px] bg-[#FACC15] px-[16px] py-[8px] font-mono text-[13px] font-medium text-black transition-colors hover:bg-[#EAB308] disabled:opacity-50"
+                className="rounded-[6px] bg-[#2596be] px-[16px] py-[8px] font-mono text-[13px] font-medium text-black transition-colors hover:bg-[#1e7da6] disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
@@ -555,7 +555,7 @@ export default function CourseDetail() {
                   <div className="font-mono text-[12px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase mb-[6px]">
                     CME TYPE
                   </div>
-                  <span className="inline-block px-[8px] py-[2px] bg-[#FACC15]/20 text-[#FACC15] rounded-[4px] text-[11px] font-mono font-bold tracking-[0.05em]">
+                  <span className="inline-block px-[8px] py-[2px] bg-[#2596be]/20 text-[#2596be] rounded-[4px] text-[11px] font-mono font-bold tracking-[0.05em]">
                     {(course.cme_type || 'Category 1').toUpperCase()}
                   </span>
                 </div>
@@ -745,7 +745,7 @@ export default function CourseDetail() {
                 onClick={() => setActiveTab('enrolled')}
                 className={`font-mono text-[13px] pb-[8px] ${
                   activeTab === 'enrolled'
-                    ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
+                    ? 'border-b-2 border-[#2596be] text-[var(--color-foreground)] font-bold'
                     : 'text-[var(--color-muted-foreground)]'
                 }`}
               >
@@ -755,7 +755,7 @@ export default function CourseDetail() {
                 onClick={() => setActiveTab('subjects')}
                 className={`font-mono text-[13px] pb-[8px] ${
                   activeTab === 'subjects'
-                    ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
+                    ? 'border-b-2 border-[#2596be] text-[var(--color-foreground)] font-bold'
                     : 'text-[var(--color-muted-foreground)]'
                 }`}
               >
@@ -775,7 +775,7 @@ export default function CourseDetail() {
                   <div
                     key={attendee.person_id}
                     onClick={() => navigate(`/hr/${attendee.person_id}`)}
-                    className="border-l-[3px] border-l-[#FACC15] pl-[12px] py-[8px] cursor-pointer hover:bg-[var(--color-input)] rounded-r-[4px] transition-colors"
+                    className="border-l-[3px] border-l-[#2596be] pl-[12px] py-[8px] cursor-pointer hover:bg-[var(--color-input)] rounded-r-[4px] transition-colors"
                   >
                     <div className="font-mono text-[13px] font-medium text-[var(--color-foreground)]">
                       {attendee.name}

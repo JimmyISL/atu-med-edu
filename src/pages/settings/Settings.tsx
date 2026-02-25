@@ -181,7 +181,7 @@ export default function Settings() {
       <button
         onClick={onChange}
         className={`relative flex-shrink-0 h-[24px] w-[44px] rounded-full cursor-pointer transition-colors ${
-          checked ? 'bg-[#FACC15]' : 'bg-[var(--color-border)]'
+          checked ? 'bg-[#2596be]' : 'bg-[var(--color-border)]'
         }`}
       >
         <span
@@ -202,7 +202,7 @@ export default function Settings() {
             SETTINGS
           </h1>
           <div className="flex items-center gap-[12px]">
-            <div className="flex h-[36px] w-[36px] items-center justify-center rounded-full bg-[#FACC15] font-headline text-[14px] font-bold text-[var(--color-foreground)]">
+            <div className="flex h-[36px] w-[36px] items-center justify-center rounded-full bg-[#2596be] font-headline text-[14px] font-bold text-[var(--color-foreground)]">
               {displayInitials}
             </div>
             <span className="font-mono text-[14px] font-medium text-[var(--color-foreground)]">
@@ -245,7 +245,7 @@ export default function Settings() {
 
                 {/* Avatar Section */}
                 <div className="mb-[24px] flex items-center gap-[16px]">
-                  <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#FACC15] font-headline text-[24px] font-bold text-[var(--color-foreground)]">
+                  <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#2596be] font-headline text-[24px] font-bold text-[var(--color-foreground)]">
                     {displayInitials}
                   </div>
                   <div className="flex-1">

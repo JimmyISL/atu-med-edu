@@ -15,6 +15,8 @@ import meetingsRoutes from './routes/meetings.js';
 import cmeRoutes from './routes/cme.js';
 import credentialsRoutes from './routes/credentials.js';
 import uploadRoutes from './routes/upload.js';
+import pathsRoutes from './routes/paths.js';
+import actionsRoutes from './routes/actions.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -32,6 +34,8 @@ app.use('/api/meetings', meetingsRoutes);
 app.use('/api/cme', cmeRoutes);
 app.use('/api/credentials', credentialsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/paths', pathsRoutes);
+app.use('/api/actions', actionsRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

@@ -18,6 +18,10 @@ import Transcript from './pages/cme/Transcript'
 import TemplateLibrary from './pages/credentials/TemplateLibrary'
 import Distribution from './pages/credentials/Distribution'
 import CertificatePreview from './pages/credentials/CertificatePreview'
+import PathsList from './pages/paths/PathsList'
+import PathDetail from './pages/paths/PathDetail'
+import PathBuilder from './pages/paths/PathBuilder'
+import PathPipeline from './pages/paths/PathPipeline'
 import Settings from './pages/settings/Settings'
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -49,6 +53,10 @@ export default function App() {
             <Route path="/courses/:id" element={<CourseDetail />} />
             <Route path="/meetings" element={<MeetingsList />} />
             <Route path="/meetings/:id" element={<MeetingDetail />} />
+            <Route path="/paths" element={<PathsList />} />
+            <Route path="/paths/:id" element={<PathDetail />} />
+            <Route path="/paths/:id/builder" element={<PathBuilder />} />
+            <Route path="/paths/:id/pipeline" element={<PathPipeline />} />
             <Route path="/cme" element={<ActivitiesList />} />
             <Route path="/cme/:id" element={<ActivityDetail />} />
             <Route path="/cme/transcript" element={<Transcript />} />

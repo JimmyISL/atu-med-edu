@@ -27,7 +27,7 @@ export function TopBar({ title, subtitle, children }: TopBarProps) {
         <span className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
           Dr. Sarah Mitchell
         </span>
-        <div className="w-[36px] h-[36px] bg-[#FACC15] rounded-full flex items-center justify-center flex-shrink-0">
+        <div className="w-[36px] h-[36px] bg-[#2596be] rounded-full flex items-center justify-center flex-shrink-0">
           <span className="font-headline text-[14px] font-bold text-[var(--color-brand-dark)]">
             SM
           </span>

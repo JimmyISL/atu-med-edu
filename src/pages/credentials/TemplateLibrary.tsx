@@ -46,7 +46,7 @@ const FIELD_PRESETS: { type: string; label: string }[] = [
 ];
 
 const FIELD_COLORS: Record<string, string> = {
-  recipient_name: '#FACC15',
+  recipient_name: '#2596be',
   course_name: '#38BDF8',
   signature: '#A78BFA',
   date: '#34D399',
@@ -321,7 +321,7 @@ export default function TemplateLibrary() {
                   <div
                     className="flex items-center gap-[4px] rounded-full px-[10px] py-[4px] text-[11px] font-mono font-semibold whitespace-nowrap shadow-md border border-black/10"
                     style={{
-                      backgroundColor: FIELD_COLORS[field.type] || '#FACC15',
+                      backgroundColor: FIELD_COLORS[field.type] || '#2596be',
                       color: '#09090B',
                     }}
                   >
@@ -358,7 +358,7 @@ export default function TemplateLibrary() {
                       >
                         <span
                           className="inline-block h-[8px] w-[8px] rounded-full"
-                          style={{ backgroundColor: FIELD_COLORS[preset.type] || '#FACC15' }}
+                          style={{ backgroundColor: FIELD_COLORS[preset.type] || '#2596be' }}
                         />
                         {preset.label}
                       </button>
@@ -385,7 +385,7 @@ export default function TemplateLibrary() {
                   <div className="flex items-center gap-[8px] mb-[10px]">
                     <span
                       className="inline-block h-[10px] w-[10px] rounded-full flex-shrink-0"
-                      style={{ backgroundColor: FIELD_COLORS[field.type] || '#FACC15' }}
+                      style={{ backgroundColor: FIELD_COLORS[field.type] || '#2596be' }}
                     />
                     <input
                       type="text"
@@ -526,7 +526,7 @@ export default function TemplateLibrary() {
                     {template.name}
                   </h3>
                   <div className="flex items-center justify-between">
-                    <span className="inline-flex rounded-[6px] bg-[#FACC15] px-[8px] py-[4px] text-[12px] font-mono font-semibold uppercase text-[#09090B]">
+                    <span className="inline-flex rounded-[6px] bg-[#2596be] px-[8px] py-[4px] text-[12px] font-mono font-semibold uppercase text-[#09090B]">
                       {template.category}
                     </span>
                     <span className="inline-flex rounded-[6px] bg-green-50 px-[8px] py-[4px] text-[12px] font-mono font-semibold uppercase text-green-600">

@@ -542,7 +542,7 @@ export default function MeetingDetail() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="rounded-[6px] bg-[#FACC15] px-[16px] py-[8px] font-mono text-[13px] font-medium text-black transition-colors hover:bg-[#EAB308] disabled:opacity-50"
+                className="rounded-[6px] bg-[#2596be] px-[16px] py-[8px] font-mono text-[13px] font-medium text-black transition-colors hover:bg-[#1e7da6] disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
@@ -574,7 +574,7 @@ export default function MeetingDetail() {
                 onClick={() => setAddTab('hr')}
                 className={`flex-1 px-[20px] py-[12px] font-mono text-[12px] font-bold uppercase tracking-wide transition-colors ${
                   addTab === 'hr'
-                    ? 'text-[#FACC15] border-b-2 border-[#FACC15]'
+                    ? 'text-[#2596be] border-b-2 border-[#2596be]'
                     : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
                 }`}
               >
@@ -584,7 +584,7 @@ export default function MeetingDetail() {
                 onClick={() => setAddTab('quick')}
                 className={`flex-1 px-[20px] py-[12px] font-mono text-[12px] font-bold uppercase tracking-wide transition-colors ${
                   addTab === 'quick'
-                    ? 'text-[#FACC15] border-b-2 border-[#FACC15]'
+                    ? 'text-[#2596be] border-b-2 border-[#2596be]'
                     : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
                 }`}
               >
@@ -621,7 +621,7 @@ export default function MeetingDetail() {
                           onClick={() => setSelectedPersonId(p.id)}
                           className={`w-full text-left px-[16px] py-[12px] border-b border-[var(--color-border)] last:border-0 transition-colors ${
                             selectedPersonId === p.id
-                              ? 'bg-[#FACC15]/10 border-l-2 border-l-[#FACC15]'
+                              ? 'bg-[#2596be]/10 border-l-2 border-l-[#2596be]'
                               : 'hover:bg-[var(--color-input)]'
                           }`}
                         >
@@ -685,7 +685,7 @@ export default function MeetingDetail() {
                 <button
                   onClick={handleAddFromHR}
                   disabled={!selectedPersonId || addingAttendee}
-                  className="rounded-[6px] bg-[#FACC15] px-[16px] py-[8px] font-mono text-[13px] font-medium text-[#09090B] transition-colors hover:bg-[#EAB308] disabled:opacity-50"
+                  className="rounded-[6px] bg-[#2596be] px-[16px] py-[8px] font-mono text-[13px] font-medium text-[#09090B] transition-colors hover:bg-[#1e7da6] disabled:opacity-50"
                 >
                   {addingAttendee ? 'Adding...' : 'Add'}
                 </button>
@@ -693,7 +693,7 @@ export default function MeetingDetail() {
                 <button
                   onClick={handleQuickAdd}
                   disabled={!quickForm.first_name || !quickForm.last_name || addingAttendee}
-                  className="rounded-[6px] bg-[#FACC15] px-[16px] py-[8px] font-mono text-[13px] font-medium text-[#09090B] transition-colors hover:bg-[#EAB308] disabled:opacity-50"
+                  className="rounded-[6px] bg-[#2596be] px-[16px] py-[8px] font-mono text-[13px] font-medium text-[#09090B] transition-colors hover:bg-[#1e7da6] disabled:opacity-50"
                 >
                   {addingAttendee ? 'Adding...' : 'Quick Add'}
                 </button>
@@ -721,7 +721,7 @@ export default function MeetingDetail() {
                 </div>
                 <button
                   onClick={openAddAttendee}
-                  className="inline-flex items-center gap-[6px] rounded-[6px] bg-[#FACC15] px-[12px] py-[6px] font-mono text-[11px] font-bold text-[#09090B] uppercase tracking-wide transition-colors hover:bg-[#EAB308]"
+                  className="inline-flex items-center gap-[6px] rounded-[6px] bg-[#2596be] px-[12px] py-[6px] font-mono text-[11px] font-bold text-[#09090B] uppercase tracking-wide transition-colors hover:bg-[#1e7da6]"
                 >
                   <Plus className="h-[14px] w-[14px]" />
                   ADD ATTENDEE
@@ -906,7 +906,7 @@ export default function MeetingDetail() {
                       <p className="font-mono text-[11px] uppercase text-[var(--color-muted-foreground)] mb-[6px]">
                         CME TYPE
                       </p>
-                      <span className="inline-flex px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium font-mono text-[#854D0E] bg-[#FEF3C7]">
+                      <span className="inline-flex px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium font-mono text-[#0c5a7a] bg-[#DBEEF8]">
                         {cmeTypeLabel}
                       </span>
                     </div>

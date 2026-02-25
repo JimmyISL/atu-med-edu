@@ -111,4 +111,36 @@ export const api = {
     issue: (data: any) => request<any>('/credentials/issued', { method: 'POST', body: JSON.stringify(data) }),
     distribution: () => request<any>('/credentials/distribution'),
   },
+
+  // Training Paths
+  paths: {
+    list: (params?: Record<string, string>) => {
+      const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+      return request<any>(`/paths${qs}`);
+    },
+    get: (id: number) => request<any>(`/paths/${id}`),
+    create: (data: any) => request<any>('/paths', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: any) => request<any>(`/paths/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => request<any>(`/paths/${id}`, { method: 'DELETE' }),
+    saveSteps: (id: number, steps: any[]) =>
+      request<any>(`/paths/${id}/steps`, { method: 'PUT', body: JSON.stringify({ steps }) }),
+    enrollTrainee: (pathId: number, data: any) =>
+      request<any>(`/paths/${pathId}/trainees`, { method: 'POST', body: JSON.stringify(data) }),
+    removeTrainee: (pathId: number, personId: number) =>
+      request<any>(`/paths/${pathId}/trainees/${personId}`, { method: 'DELETE' }),
+    updateTrainee: (pathId: number, personId: number, data: any) =>
+      request<any>(`/paths/${pathId}/trainees/${personId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    updateProgress: (pathId: number, traineePathId: number, stepId: number, data: any) =>
+      request<any>(`/paths/${pathId}/progress/${traineePathId}/${stepId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    getActions: (id: number) => request<any[]>(`/paths/${id}/actions`),
+    createAction: (id: number, data: any) =>
+      request<any>(`/paths/${id}/actions`, { method: 'POST', body: JSON.stringify(data) }),
+    getPipeline: (id: number) => request<any>(`/paths/${id}/pipeline`),
+  },
+
+  // Action Items
+  actions: {
+    update: (id: number, data: any) => request<any>(`/actions/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: (id: number) => request<any>(`/actions/${id}`, { method: 'DELETE' }),
+  },
 };

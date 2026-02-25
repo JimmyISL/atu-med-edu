@@ -25,11 +25,11 @@
   --color-status-red: #EF4444;
   --color-status-blue: #3B82F6;
   --color-status-amber: #D97706;
-  --color-status-yellow: #FACC15;
+  --color-status-yellow: #2596be;
   --color-status-purple: #8B5CF6;
 
   --color-brand-dark: #09090B;
-  --color-brand-accent: #FACC15;
+  --color-brand-accent: #2596be;
 }
 
 @layer base {

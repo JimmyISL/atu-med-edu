@@ -7,7 +7,7 @@ export default function ForgotPassword() {
       <div className="w-[560px] bg-[#09090B] h-full flex flex-col justify-between p-[48px]">
         {/* Top - Logo */}
         <div className="flex flex-col gap-[16px]">
-          <div className="w-[48px] h-[48px] bg-[#FACC15] flex items-center justify-center">
+          <div className="w-[48px] h-[48px] bg-[#2596be] flex items-center justify-center">
             <span className="text-[#09090B] text-[32px] font-bold leading-none">+</span>
           </div>
           <h1 className="font-headline text-[28px] font-bold text-white tracking-[4px]">
@@ -17,7 +17,7 @@ export default function ForgotPassword() {
 
         {/* Middle - Account Recovery */}
         <div className="flex flex-col gap-[24px] items-start">
-          <div className="w-[48px] h-[48px] bg-[#FACC15] rounded-full flex items-center justify-center">
+          <div className="w-[48px] h-[48px] bg-[#2596be] rounded-full flex items-center justify-center">
             <span className="text-[24px]">🔒</span>
           </div>
           <div className="flex flex-col gap-[16px]">

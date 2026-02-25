@@ -235,7 +235,7 @@ export default function CoursesList() {
         </div>
         <button
           onClick={() => { setFormError(''); setIsModalOpen(true); }}
-          className="font-mono text-[13px] px-[16px] py-[8px] bg-[#FACC15] text-black rounded-[4px] flex items-center gap-[8px] hover:bg-[#FACC15]/90 font-bold tracking-[0.05em]"
+          className="font-mono text-[13px] px-[16px] py-[8px] bg-[#2596be] text-black rounded-[4px] flex items-center gap-[8px] hover:bg-[#2596be]/90 font-bold tracking-[0.05em]"
         >
           <Plus className="w-[16px] h-[16px]" />
           ADD COURSE
@@ -249,7 +249,7 @@ export default function CoursesList() {
             onClick={() => handleTabChange('all')}
             className={`font-mono text-[13px] pb-[4px] ${
               activeTab === 'all'
-                ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
+                ? 'border-b-2 border-[#2596be] text-[var(--color-foreground)] font-bold'
                 : 'text-[var(--color-muted-foreground)]'
             }`}
           >
@@ -259,7 +259,7 @@ export default function CoursesList() {
             onClick={() => handleTabChange('active')}
             className={`font-mono text-[13px] pb-[4px] ${
               activeTab === 'active'
-                ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
+                ? 'border-b-2 border-[#2596be] text-[var(--color-foreground)] font-bold'
                 : 'text-[var(--color-muted-foreground)]'
             }`}
           >
@@ -269,7 +269,7 @@ export default function CoursesList() {
             onClick={() => handleTabChange('archived')}
             className={`font-mono text-[13px] pb-[4px] ${
               activeTab === 'archived'
-                ? 'border-b-2 border-[#FACC15] text-[var(--color-foreground)] font-bold'
+                ? 'border-b-2 border-[#2596be] text-[var(--color-foreground)] font-bold'
                 : 'text-[var(--color-muted-foreground)]'
             }`}
           >
@@ -360,7 +360,7 @@ export default function CoursesList() {
           >
             Previous
           </button>
-          <button className="font-mono text-[13px] px-[12px] py-[6px] bg-[#FACC15] border border-[#FACC15] rounded-[4px] text-black font-bold">
+          <button className="font-mono text-[13px] px-[12px] py-[6px] bg-[#2596be] border border-[#2596be] rounded-[4px] text-black font-bold">
             {page}
           </button>
           <button
@@ -721,7 +721,7 @@ export default function CoursesList() {
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="font-mono text-[13px] px-[16px] py-[8px] bg-[#FACC15] text-black rounded-[4px] hover:bg-[#FACC15]/90 font-bold tracking-[0.05em]"
+                className="font-mono text-[13px] px-[16px] py-[8px] bg-[#2596be] text-black rounded-[4px] hover:bg-[#2596be]/90 font-bold tracking-[0.05em]"
               >
                 {submitting ? 'Saving...' : 'Save Course'}
               </button>

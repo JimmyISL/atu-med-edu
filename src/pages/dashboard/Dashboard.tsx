@@ -110,7 +110,7 @@ function getActivityBorderClass(type: string): string {
     case 'cme_credit':
       return 'border-l-green-500';
     case 'person_added':
-      return 'border-l-[#FACC15]';
+      return 'border-l-[#2596be]';
     case 'meeting_scheduled':
       return 'border-l-blue-500';
     default:
@@ -239,7 +239,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-[16px]">
           {/* User Avatar */}
           <div className="flex items-center gap-[12px]">
-            <div className="w-[36px] h-[36px] rounded-full bg-[#FACC15] flex items-center justify-center font-mono text-[13px] font-bold text-black">
+            <div className="w-[36px] h-[36px] rounded-full bg-[#2596be] flex items-center justify-center font-mono text-[13px] font-bold text-black">
               {user?.initials ?? '??'}
             </div>
             <div className="font-mono text-[13px] text-[var(--color-foreground)]">
@@ -267,8 +267,8 @@ export default function Dashboard() {
             onClick={() => handlePreset(key)}
             className={`font-mono text-[12px] tracking-[0.05em] px-[12px] py-[6px] rounded-[6px] border transition-colors cursor-pointer ${
               activePreset === key
-                ? 'bg-[#FACC15] text-[#09090B] border-[#FACC15] font-bold'
-                : 'bg-transparent text-[var(--color-muted-foreground)] border-[var(--color-border)] hover:border-[#FACC15]/50 hover:text-[var(--color-foreground)]'
+                ? 'bg-[#2596be] text-[#09090B] border-[#2596be] font-bold'
+                : 'bg-transparent text-[var(--color-muted-foreground)] border-[var(--color-border)] hover:border-[#2596be]/50 hover:text-[var(--color-foreground)]'
             }`}
           >
             {label}
@@ -285,7 +285,7 @@ export default function Dashboard() {
           type="date"
           value={fromDate}
           onChange={(e) => handleDateChange('from', e.target.value)}
-          className="font-mono text-[12px] bg-[var(--color-background)] text-[var(--color-foreground)] border border-[var(--color-border)] rounded-[6px] px-[8px] py-[5px] outline-none focus:border-[#FACC15] transition-colors"
+          className="font-mono text-[12px] bg-[var(--color-background)] text-[var(--color-foreground)] border border-[var(--color-border)] rounded-[6px] px-[8px] py-[5px] outline-none focus:border-[#2596be] transition-colors"
         />
         <label className="font-mono text-[11px] text-[var(--color-muted-foreground)] tracking-[0.05em] uppercase">
           TO
@@ -294,7 +294,7 @@ export default function Dashboard() {
           type="date"
           value={toDate}
           onChange={(e) => handleDateChange('to', e.target.value)}
-          className="font-mono text-[12px] bg-[var(--color-background)] text-[var(--color-foreground)] border border-[var(--color-border)] rounded-[6px] px-[8px] py-[5px] outline-none focus:border-[#FACC15] transition-colors"
+          className="font-mono text-[12px] bg-[var(--color-background)] text-[var(--color-foreground)] border border-[var(--color-border)] rounded-[6px] px-[8px] py-[5px] outline-none focus:border-[#2596be] transition-colors"
         />
       </div>
 

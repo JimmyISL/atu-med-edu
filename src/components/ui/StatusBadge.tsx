@@ -10,7 +10,7 @@ export function StatusBadge({ status, color, className = '' }: StatusBadgeProps)
     red: 'bg-[#EF4444]/10 text-[#EF4444]',
     blue: 'bg-[#3B82F6]/10 text-[#3B82F6]',
     amber: 'bg-[#D97706]/10 text-[#D97706]',
-    yellow: 'bg-[#FACC15]/10 text-[#FACC15]',
+    yellow: 'bg-[#2596be]/10 text-[#2596be]',
     purple: 'bg-[#8B5CF6]/10 text-[#8B5CF6]',
   }
 

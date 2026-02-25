@@ -106,7 +106,7 @@ function EditModal({
   };
 
   const inputClass =
-    'w-full rounded-[8px] border border-[var(--color-border)] bg-[var(--color-background)] px-[12px] py-[8px] font-mono text-[13px] text-[var(--color-foreground)] outline-none focus:ring-2 focus:ring-[#FACC15]/40';
+    'w-full rounded-[8px] border border-[var(--color-border)] bg-[var(--color-background)] px-[12px] py-[8px] font-mono text-[13px] text-[var(--color-foreground)] outline-none focus:ring-2 focus:ring-[#2596be]/40';
 
   const labelClass = 'block mb-[4px] text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]';
 
@@ -219,7 +219,7 @@ function EditModal({
           <button
             onClick={handleSubmit}
             disabled={saving}
-            className="rounded-[8px] bg-[#FACC15] px-[16px] py-[8px] font-mono text-[13px] font-semibold text-[#09090B] transition-colors hover:bg-[#FACC15]/80 disabled:opacity-50"
+            className="rounded-[8px] bg-[#2596be] px-[16px] py-[8px] font-mono text-[13px] font-semibold text-[#09090B] transition-colors hover:bg-[#2596be]/80 disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>

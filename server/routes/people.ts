@@ -123,12 +123,38 @@ router.get('/:id', async (req, res) => {
       [id]
     );
 
+    // Get their training path enrollments with progress
+    const trainingPaths = await pool.query(
+      `SELECT tp.id as trainee_path_id, tp.path_id, tp.status, tp.enrolled_at, tp.completed_at,
+              t.name as path_name, t.status as path_status,
+              (SELECT COUNT(*) FROM path_steps WHERE path_id = tp.path_id) as total_steps,
+              (SELECT COUNT(*) FROM trainee_step_progress tsp WHERE tsp.trainee_path_id = tp.id AND tsp.status = 'COMPLETED') as completed_steps
+       FROM trainee_paths tp
+       JOIN training_paths t ON tp.path_id = t.id
+       WHERE tp.person_id = $1
+       ORDER BY tp.enrolled_at DESC`,
+      [id]
+    );
+
+    // Get notes/comments about this person
+    const personNotes = await pool.query(
+      `SELECT pn.*,
+              TRIM(COALESCE(a.title, '') || ' ' || a.first_name || ' ' || a.last_name) AS author_name
+       FROM person_notes pn
+       JOIN people a ON pn.author_id = a.id
+       WHERE pn.person_id = $1
+       ORDER BY pn.created_at ASC`,
+      [id]
+    );
+
     res.json({
       ...result.rows[0],
       courses: courses.rows,
       meetings: meetings.rows,
       cme_credits: cmeCredits.rows,
       credentials: credentials.rows,
+      training_paths: trainingPaths.rows,
+      person_notes: personNotes.rows,
     });
   } catch (err) {
     console.error('GET /api/people/:id error:', err);

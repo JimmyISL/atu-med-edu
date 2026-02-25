@@ -130,6 +130,8 @@ export const api = {
       request<any>(`/paths/${pathId}/trainees/${personId}`, { method: 'DELETE' }),
     updateTrainee: (pathId: number, personId: number, data: any) =>
       request<any>(`/paths/${pathId}/trainees/${personId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    getTraineeProgress: (pathId: number, traineePathId: number) =>
+      request<any[]>(`/paths/${pathId}/progress/${traineePathId}`),
     updateProgress: (pathId: number, traineePathId: number, stepId: number, data: any) =>
       request<any>(`/paths/${pathId}/progress/${traineePathId}/${stepId}`, { method: 'PATCH', body: JSON.stringify(data) }),
     getActions: (id: number) => request<any[]>(`/paths/${id}/actions`),
@@ -142,5 +144,13 @@ export const api = {
   actions: {
     update: (id: number, data: any) => request<any>(`/actions/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: number) => request<any>(`/actions/${id}`, { method: 'DELETE' }),
+  },
+
+  // Person Notes
+  notes: {
+    list: (personId: number) => request<any[]>(`/notes/person/${personId}`),
+    create: (data: any) => request<any>('/notes', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: any) => request<any>(`/notes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: (id: number) => request<any>(`/notes/${id}`, { method: 'DELETE' }),
   },
 };

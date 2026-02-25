@@ -99,15 +99,16 @@ router.get('/:id', async (req, res) => {
       [id]
     );
 
-    // Get action items for this path
+    // Get action items for this path (via path_steps or via trainees on this path)
     const actions = await pool.query(
       `SELECT ai.*,
               CASE WHEN p.title != '' THEN p.title || ' ' || p.first_name || ' ' || p.last_name
                    ELSE p.first_name || ' ' || p.last_name END AS person_name
        FROM action_items ai
        JOIN people p ON ai.person_id = p.id
-       JOIN path_steps ps ON ai.path_step_id = ps.id
+       LEFT JOIN path_steps ps ON ai.path_step_id = ps.id
        WHERE ps.path_id = $1
+          OR ai.person_id IN (SELECT person_id FROM trainee_paths WHERE path_id = $1)
        ORDER BY ai.created_at DESC`,
       [id]
     );
@@ -319,6 +320,27 @@ router.patch('/:id/trainees/:personId', async (req, res) => {
     res.json(result.rows[0]);
   } catch (err: any) {
     console.error('PATCH /api/paths/:id/trainees/:personId error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/paths/:id/progress/:traineePathId - Get step-by-step progress for a trainee
+router.get('/:id/progress/:traineePathId', async (req, res) => {
+  try {
+    const { traineePathId } = req.params;
+    const result = await pool.query(
+      `SELECT tsp.*, ps.step_group, ps.step_order, ps.is_required,
+              c.name AS course_name, c.course_number
+       FROM trainee_step_progress tsp
+       JOIN path_steps ps ON tsp.path_step_id = ps.id
+       LEFT JOIN courses c ON ps.course_id = c.id
+       WHERE tsp.trainee_path_id = $1
+       ORDER BY ps.step_group, ps.step_order`,
+      [traineePathId]
+    );
+    res.json(result.rows);
+  } catch (err: any) {
+    console.error('GET /api/paths/:id/progress/:traineePathId error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

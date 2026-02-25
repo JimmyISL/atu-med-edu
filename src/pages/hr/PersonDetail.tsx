@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Send, Reply, Trash2, Edit3 } from 'lucide-react';
 import { api } from '../../api';
+import { useAuth } from '../../auth';
 
 interface PersonCourse {
   course_id: number;
@@ -34,6 +35,29 @@ interface PersonCredential {
   status: string;
 }
 
+interface PersonTrainingPath {
+  trainee_path_id: number;
+  path_id: number;
+  status: string;
+  enrolled_at: string;
+  completed_at: string;
+  path_name: string;
+  path_status: string;
+  total_steps: number;
+  completed_steps: number;
+}
+
+interface PersonNote {
+  id: number;
+  person_id: number;
+  author_id: number;
+  content: string;
+  parent_id: number | null;
+  author_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface PersonData {
   id: number;
   title: string;
@@ -54,6 +78,8 @@ interface PersonData {
   meetings: PersonMeeting[];
   cme_credits: PersonCME[];
   credentials: PersonCredential[];
+  training_paths: PersonTrainingPath[];
+  person_notes: PersonNote[];
 }
 
 interface EditForm {
@@ -78,10 +104,20 @@ const deleteBtnCls = 'rounded-[6px] border border-red-300 bg-red-50 px-[16px] py
 export default function PersonDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('information');
   const [person, setPerson] = useState<PersonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Notes state
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [newNote, setNewNote] = useState('');
+  const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [editingNote, setEditingNote] = useState<number | null>(null);
+  const [editNoteContent, setEditNoteContent] = useState('');
+  const [submittingNote, setSubmittingNote] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -105,6 +141,14 @@ export default function PersonDetail() {
   useEffect(() => {
     fetchPerson();
   }, [id]);
+
+  useEffect(() => {
+    if (user?.email) {
+      api.people.findByEmail(user.email).then((p: any) => {
+        if (p) setCurrentUserId(p.id);
+      }).catch(() => {});
+    }
+  }, [user]);
 
   const openEdit = () => {
     if (!person) return;
@@ -161,11 +205,68 @@ export default function PersonDetail() {
     }
   };
 
+  // ── Note handlers ──
+  const handleCreateNote = async (parentId?: number) => {
+    if (!id || !currentUserId) return;
+    const content = parentId ? replyContent : newNote;
+    if (!content.trim()) return;
+    setSubmittingNote(true);
+    try {
+      await api.notes.create({
+        person_id: Number(id),
+        author_id: currentUserId,
+        content: content.trim(),
+        parent_id: parentId || null,
+      });
+      if (parentId) { setReplyTo(null); setReplyContent(''); }
+      else { setNewNote(''); }
+      fetchPerson();
+    } catch (err) {
+      console.error('Failed to create note:', err);
+    } finally {
+      setSubmittingNote(false);
+    }
+  };
+
+  const handleUpdateNote = async (noteId: number) => {
+    if (!editNoteContent.trim()) return;
+    try {
+      await api.notes.update(noteId, { content: editNoteContent.trim() });
+      setEditingNote(null);
+      setEditNoteContent('');
+      fetchPerson();
+    } catch (err) {
+      console.error('Failed to update note:', err);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: number) => {
+    if (!window.confirm('Delete this note and all its replies?')) return;
+    try {
+      await api.notes.delete(noteId);
+      fetchPerson();
+    } catch (err) {
+      console.error('Failed to delete note:', err);
+    }
+  };
+
+  const formatNoteDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleString('en-US', {
+      month: 'numeric', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true,
+      timeZone: 'America/Chicago',
+    });
+  };
+
   const tabs = [
     { id: 'information', label: 'Information' },
     { id: 'meetings', label: 'Meetings' },
     { id: 'cme-history', label: 'CME History' },
     { id: 'credentials', label: 'Credentials' },
+    { id: 'training-paths', label: 'Training Paths' },
+    { id: 'notes', label: 'Notes' },
   ];
 
   if (loading) {
@@ -723,6 +824,236 @@ export default function PersonDetail() {
               ) : (
                 <p className="font-mono text-[13px] text-[var(--color-muted-foreground)]">No credentials found.</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'training-paths' && (
+          <div className="px-[32px] py-[24px]">
+            <div className="rounded-[8px] border border-[var(--color-border)] bg-[var(--color-card)] p-[24px]">
+              <h2 className="mb-[20px] font-headline text-[18px] font-bold text-[var(--color-foreground)]">
+                Training Paths
+              </h2>
+              {person.training_paths && person.training_paths.length > 0 ? (
+                <div className="flex flex-col gap-[12px]">
+                  {person.training_paths.map((tp) => {
+                    const total = Number(tp.total_steps) || 0;
+                    const completed = Number(tp.completed_steps) || 0;
+                    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                    const statusColor =
+                      tp.status === 'ACTIVE' ? 'bg-green-500' :
+                      tp.status === 'COMPLETED' ? 'bg-blue-500' :
+                      tp.status === 'PAUSED' ? 'bg-amber-500' :
+                      tp.status === 'DROPPED' ? 'bg-red-500' : 'bg-gray-500';
+                    return (
+                      <div
+                        key={tp.trainee_path_id}
+                        onClick={() => navigate(`/paths/${tp.path_id}`)}
+                        className="flex items-center justify-between rounded-[6px] border border-[var(--color-border)] px-[16px] py-[14px] cursor-pointer transition-colors hover:bg-[var(--color-input)]"
+                      >
+                        <div className="flex-1">
+                          <p className="font-mono text-[14px] font-medium text-[var(--color-foreground)]">
+                            {tp.path_name}
+                          </p>
+                          <div className="flex items-center gap-[12px] mt-[6px]">
+                            <div className="w-[120px] h-[6px] bg-[var(--color-background)] rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-[#2596be] rounded-full transition-all"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
+                              {completed}/{total} steps ({pct}%)
+                            </span>
+                            <span className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
+                              Enrolled {tp.enrolled_at ? new Date(tp.enrolled_at.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                            </span>
+                          </div>
+                        </div>
+                        <span className={`inline-flex items-center rounded-[4px] ${statusColor} px-[8px] py-[4px] font-mono text-[11px] font-medium uppercase tracking-wide text-white`}>
+                          {tp.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
+                  Not enrolled in any training paths yet.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'notes' && (
+          <div className="px-[32px] py-[24px]">
+            <div className="rounded-[8px] border border-[var(--color-border)] bg-[var(--color-card)] p-[24px]">
+              <h2 className="mb-[20px] font-headline text-[18px] font-bold text-[var(--color-foreground)]">
+                Faculty Notes & Discussion
+              </h2>
+
+              {/* New note input */}
+              <div className="mb-[24px] flex gap-[12px]">
+                <textarea
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Leave a note about this person..."
+                  rows={2}
+                  className={`${inputCls} flex-1`}
+                />
+                <button
+                  onClick={() => handleCreateNote()}
+                  disabled={!newNote.trim() || submittingNote || !currentUserId}
+                  className="self-end rounded-[6px] bg-[#2596be] px-[16px] py-[8px] font-mono text-[13px] font-medium text-[#09090B] transition-colors hover:bg-[#1e7da6] disabled:opacity-50 inline-flex items-center gap-[6px]"
+                >
+                  <Send className="h-[14px] w-[14px]" />
+                  Post
+                </button>
+              </div>
+
+              {/* Notes list */}
+              {(() => {
+                const notes = person.person_notes || [];
+                const topLevel = notes.filter((n) => !n.parent_id);
+                const replies = notes.filter((n) => n.parent_id);
+                const replyMap: Record<number, PersonNote[]> = {};
+                replies.forEach((r) => {
+                  if (!replyMap[r.parent_id!]) replyMap[r.parent_id!] = [];
+                  replyMap[r.parent_id!].push(r);
+                });
+
+                if (topLevel.length === 0) {
+                  return (
+                    <p className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
+                      No notes yet. Be the first to leave a note.
+                    </p>
+                  );
+                }
+
+                const renderNote = (note: PersonNote, isReply = false) => (
+                  <div
+                    key={note.id}
+                    className={`${isReply ? 'ml-[32px] border-l-2 border-l-[var(--color-border)] pl-[16px]' : ''}`}
+                  >
+                    <div className="group rounded-[6px] border border-[var(--color-border)] p-[12px] mb-[8px] transition-colors hover:bg-[var(--color-input)]">
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-[6px]">
+                        <div className="flex items-center gap-[8px]">
+                          <span className="font-mono text-[13px] font-medium text-[var(--color-foreground)]">
+                            {note.author_name}
+                          </span>
+                          <span className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
+                            {formatNoteDate(note.created_at)}
+                          </span>
+                          {note.updated_at !== note.created_at && (
+                            <span className="font-mono text-[10px] text-[var(--color-muted-foreground)] italic">
+                              (edited)
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-[4px] opacity-0 group-hover:opacity-100 transition-opacity">
+                          {!isReply && (
+                            <button
+                              onClick={() => { setReplyTo(note.id); setReplyContent(''); }}
+                              className="inline-flex items-center justify-center w-[24px] h-[24px] rounded-[4px] text-[var(--color-muted-foreground)] hover:bg-[var(--color-background)] hover:text-[#2596be]"
+                              title="Reply"
+                            >
+                              <Reply className="h-[14px] w-[14px]" />
+                            </button>
+                          )}
+                          {currentUserId === note.author_id && (
+                            <>
+                              <button
+                                onClick={() => { setEditingNote(note.id); setEditNoteContent(note.content); }}
+                                className="inline-flex items-center justify-center w-[24px] h-[24px] rounded-[4px] text-[var(--color-muted-foreground)] hover:bg-[var(--color-background)] hover:text-[var(--color-foreground)]"
+                                title="Edit"
+                              >
+                                <Edit3 className="h-[14px] w-[14px]" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteNote(note.id)}
+                                className="inline-flex items-center justify-center w-[24px] h-[24px] rounded-[4px] text-[var(--color-muted-foreground)] hover:bg-red-50 hover:text-red-600"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-[14px] w-[14px]" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Content or edit mode */}
+                      {editingNote === note.id ? (
+                        <div className="flex gap-[8px]">
+                          <textarea
+                            value={editNoteContent}
+                            onChange={(e) => setEditNoteContent(e.target.value)}
+                            rows={2}
+                            className={`${inputCls} flex-1`}
+                          />
+                          <div className="flex flex-col gap-[4px] self-end">
+                            <button
+                              onClick={() => handleUpdateNote(note.id)}
+                              className="rounded-[4px] bg-[#2596be] px-[12px] py-[6px] font-mono text-[11px] font-medium text-[#09090B]"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => { setEditingNote(null); setEditNoteContent(''); }}
+                              className="rounded-[4px] border border-[var(--color-border)] px-[12px] py-[6px] font-mono text-[11px] font-medium text-[var(--color-foreground)]"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="font-mono text-[13px] text-[var(--color-foreground)] leading-[1.6] whitespace-pre-wrap">
+                          {note.content}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Reply input for this note */}
+                    {replyTo === note.id && (
+                      <div className="ml-[32px] flex gap-[8px] mb-[8px]">
+                        <textarea
+                          value={replyContent}
+                          onChange={(e) => setReplyContent(e.target.value)}
+                          placeholder="Write a reply..."
+                          rows={2}
+                          className={`${inputCls} flex-1`}
+                          autoFocus
+                        />
+                        <div className="flex flex-col gap-[4px] self-end">
+                          <button
+                            onClick={() => handleCreateNote(note.id)}
+                            disabled={!replyContent.trim() || submittingNote}
+                            className="rounded-[4px] bg-[#2596be] px-[12px] py-[6px] font-mono text-[11px] font-medium text-[#09090B] disabled:opacity-50"
+                          >
+                            Reply
+                          </button>
+                          <button
+                            onClick={() => { setReplyTo(null); setReplyContent(''); }}
+                            className="rounded-[4px] border border-[var(--color-border)] px-[12px] py-[6px] font-mono text-[11px] font-medium text-[var(--color-foreground)]"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Replies */}
+                    {replyMap[note.id]?.map((r) => renderNote(r, true))}
+                  </div>
+                );
+
+                return (
+                  <div className="space-y-[4px]">
+                    {topLevel.map((note) => renderNote(note))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}

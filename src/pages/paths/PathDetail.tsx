@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, X, Search, ChevronDown, GripVertical } from 'lucide-react';
+import { ArrowLeft, Plus, X, Search, ChevronDown, GripVertical, Check, Circle, Loader } from 'lucide-react';
+import { useAuth } from '../../auth';
 import { api } from '../../api';
 
 interface PathStep {
@@ -29,6 +30,7 @@ interface ActionItem {
   description: string;
   status: string;
   due_date: string;
+  person_id: number;
   person_name: string;
 }
 
@@ -84,14 +86,6 @@ function getStatusColor(status: string): string {
   }
 }
 
-function getActionStatusColor(status: string): string {
-  switch (status?.toUpperCase()) {
-    case 'DONE': return 'text-green-600 bg-green-50';
-    case 'PENDING': return 'text-amber-600 bg-amber-50';
-    default: return 'text-gray-600 bg-gray-50';
-  }
-}
-
 export default function PathDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -115,6 +109,18 @@ export default function PathDetail() {
   const [addingTrainee, setAddingTrainee] = useState(false);
   const [quickForm, setQuickForm] = useState({ first_name: '', last_name: '', email: '' });
 
+  // Progress tracking
+  const { user } = useAuth();
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [expandedTraineeId, setExpandedTraineeId] = useState<number | null>(null);
+  const [traineeProgress, setTraineeProgress] = useState<Record<number, any[]>>({});
+  const [loadingProgress, setLoadingProgress] = useState<number | null>(null);
+
+  // Action items CRUD
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [savingAction, setSavingAction] = useState(false);
+  const [actionForm, setActionForm] = useState({ title: '', description: '', due_date: '', person_id: '' });
+
   const fetchPath = () => {
     if (!id) return;
     setLoading(true);
@@ -133,6 +139,14 @@ export default function PathDetail() {
   useEffect(() => {
     fetchPath();
   }, [id]);
+
+  useEffect(() => {
+    if (user?.email) {
+      api.people.findByEmail(user.email).then((p: any) => {
+        if (p) setCurrentUserId(p.id);
+      }).catch(() => {});
+    }
+  }, [user]);
 
   // ── Edit helpers ──
   const openEdit = () => {
@@ -243,13 +257,90 @@ export default function PathDetail() {
     }
   };
 
-  const handleRemoveTrainee = async (traineePathId: number) => {
+  const handleRemoveTrainee = async (personId: number) => {
     if (!id) return;
     try {
-      await api.paths.removeTrainee(Number(id), traineePathId);
+      await api.paths.removeTrainee(Number(id), personId);
       fetchPath();
     } catch (err) {
       console.error('Failed to remove trainee:', err);
+    }
+  };
+
+  // ── Progress tracking ──
+  const handleExpandTrainee = async (trainee: Trainee) => {
+    if (expandedTraineeId === trainee.id) {
+      setExpandedTraineeId(null);
+      return;
+    }
+    setExpandedTraineeId(trainee.id);
+    if (traineeProgress[trainee.id]) return;
+    setLoadingProgress(trainee.id);
+    try {
+      const progress = await api.paths.getTraineeProgress(Number(id), trainee.id);
+      setTraineeProgress((prev) => ({ ...prev, [trainee.id]: progress }));
+    } catch (err) {
+      console.error('Failed to load progress:', err);
+    } finally {
+      setLoadingProgress(null);
+    }
+  };
+
+  const handleToggleStepStatus = async (traineePathId: number, stepId: number, currentStatus: string) => {
+    const nextStatus: Record<string, string> = { NOT_STARTED: 'IN_PROGRESS', IN_PROGRESS: 'COMPLETED', COMPLETED: 'NOT_STARTED' };
+    const newStatus = nextStatus[currentStatus] || 'IN_PROGRESS';
+    try {
+      await api.paths.updateProgress(Number(id), traineePathId, stepId, { status: newStatus });
+      setTraineeProgress((prev) => ({
+        ...prev,
+        [traineePathId]: (prev[traineePathId] || []).map((s: any) =>
+          s.path_step_id === stepId ? { ...s, status: newStatus } : s
+        ),
+      }));
+      fetchPath();
+    } catch (err) {
+      console.error('Failed to update step status:', err);
+    }
+  };
+
+  // ── Action Items CRUD ──
+  const handleCreateAction = async () => {
+    if (!id || !actionForm.title.trim()) return;
+    setSavingAction(true);
+    try {
+      await api.paths.createAction(Number(id), {
+        title: actionForm.title,
+        description: actionForm.description || undefined,
+        due_date: actionForm.due_date || undefined,
+        person_id: actionForm.person_id ? Number(actionForm.person_id) : undefined,
+        assigned_by: currentUserId || undefined,
+      });
+      setShowActionModal(false);
+      setActionForm({ title: '', description: '', due_date: '', person_id: '' });
+      fetchPath();
+    } catch (err) {
+      console.error('Failed to create action:', err);
+    } finally {
+      setSavingAction(false);
+    }
+  };
+
+  const handleToggleAction = async (actionId: number, currentStatus: string) => {
+    const newStatus = currentStatus?.toUpperCase() === 'DONE' ? 'PENDING' : 'DONE';
+    try {
+      await api.actions.update(actionId, { status: newStatus });
+      fetchPath();
+    } catch (err) {
+      console.error('Failed to toggle action:', err);
+    }
+  };
+
+  const handleDeleteAction = async (actionId: number) => {
+    try {
+      await api.actions.delete(actionId);
+      fetchPath();
+    } catch (err) {
+      console.error('Failed to delete action:', err);
     }
   };
 
@@ -556,6 +647,78 @@ export default function PathDetail() {
         </div>
       )}
 
+      {/* Create Action Modal */}
+      {showActionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-[480px] rounded-[8px] border border-[var(--color-border)] bg-[var(--color-card)] p-[24px]">
+            <h2 className="mb-[20px] font-headline text-[18px] font-bold text-[var(--color-foreground)]">
+              New Action Item
+            </h2>
+            <div className="space-y-[16px]">
+              <div className="flex flex-col gap-[4px]">
+                <label className={labelCls}>TITLE *</label>
+                <input
+                  type="text"
+                  value={actionForm.title}
+                  onChange={(e) => setActionForm((prev) => ({ ...prev, title: e.target.value }))}
+                  placeholder="What needs to be done?"
+                  className={inputCls}
+                />
+              </div>
+              <div className="flex flex-col gap-[4px]">
+                <label className={labelCls}>DESCRIPTION</label>
+                <textarea
+                  value={actionForm.description}
+                  onChange={(e) => setActionForm((prev) => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                  placeholder="Additional details..."
+                  className={inputCls}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-[16px]">
+                <div className="flex flex-col gap-[4px]">
+                  <label className={labelCls}>ASSIGN TO</label>
+                  <select
+                    value={actionForm.person_id}
+                    onChange={(e) => setActionForm((prev) => ({ ...prev, person_id: e.target.value }))}
+                    className={inputCls}
+                  >
+                    <option value="">Select trainee...</option>
+                    {trainees.map((t) => (
+                      <option key={t.person_id} value={t.person_id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-[4px]">
+                  <label className={labelCls}>DUE DATE</label>
+                  <input
+                    type="date"
+                    value={actionForm.due_date}
+                    onChange={(e) => setActionForm((prev) => ({ ...prev, due_date: e.target.value }))}
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="mt-[24px] flex items-center justify-end gap-[12px]">
+              <button
+                onClick={() => { setShowActionModal(false); setActionForm({ title: '', description: '', due_date: '', person_id: '' }); }}
+                className="rounded-[6px] border border-[var(--color-border)] bg-[var(--color-card)] px-[16px] py-[8px] font-mono text-[13px] font-medium text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-input)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateAction}
+                disabled={!actionForm.title.trim() || savingAction}
+                className="rounded-[6px] bg-[#2596be] px-[16px] py-[8px] font-mono text-[13px] font-medium text-[#09090B] transition-colors hover:bg-[#1e7da6] disabled:opacity-50"
+              >
+                {savingAction ? 'Creating...' : 'Create Action'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         <div className="flex gap-[24px] px-[32px] py-[24px]">
@@ -709,20 +872,29 @@ export default function PathDetail() {
                         </td>
                       </tr>
                     ) : (
-                      trainees.map((trainee) => {
+                      trainees.flatMap((trainee) => {
                         const pct = trainee.total_steps > 0
                           ? Math.round((trainee.progress_count / trainee.total_steps) * 100)
                           : 0;
-                        return (
+                        const isExpanded = expandedTraineeId === trainee.id;
+                        const progress = traineeProgress[trainee.id] || [];
+                        const isLoadingThis = loadingProgress === trainee.id;
+                        const rows = [
                           <tr
                             key={trainee.id}
-                            className="group border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-input)] transition-colors"
+                            className={`group border-b border-[var(--color-border)] last:border-0 cursor-pointer transition-colors hover:bg-[var(--color-input)] ${isExpanded ? 'bg-[var(--color-input)]' : ''}`}
+                            onClick={() => handleExpandTrainee(trainee)}
                           >
-                            <td
-                              className="px-[16px] py-[14px] text-[14px] text-[var(--color-foreground)] font-medium cursor-pointer"
-                              onClick={() => navigate(`/hr/${trainee.person_id}`)}
-                            >
-                              {trainee.name}
+                            <td className="px-[16px] py-[14px] text-[14px] text-[var(--color-foreground)] font-medium">
+                              <div className="flex items-center gap-[8px]">
+                                <ChevronDown className={`h-[14px] w-[14px] text-[var(--color-muted-foreground)] transition-transform ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
+                                <span
+                                  className="hover:underline"
+                                  onClick={(e) => { e.stopPropagation(); navigate(`/hr/${trainee.person_id}`); }}
+                                >
+                                  {trainee.name}
+                                </span>
+                              </div>
                             </td>
                             <td className="px-[16px] py-[14px]">
                               <span className={`inline-flex px-[8px] py-[4px] rounded-[4px] text-[12px] font-medium font-mono ${getStatusColor(trainee.status)}`}>
@@ -732,10 +904,7 @@ export default function PathDetail() {
                             <td className="px-[16px] py-[14px]">
                               <div className="flex items-center gap-[8px]">
                                 <div className="w-[80px] h-[6px] bg-[var(--color-background)] rounded-full overflow-hidden">
-                                  <div
-                                    className="h-full bg-[#2596be] rounded-full transition-all"
-                                    style={{ width: `${pct}%` }}
-                                  />
+                                  <div className="h-full bg-[#2596be] rounded-full transition-all" style={{ width: `${pct}%` }} />
                                 </div>
                                 <span className="font-mono text-[12px] text-[var(--color-muted-foreground)]">
                                   {trainee.progress_count}/{trainee.total_steps}
@@ -747,15 +916,72 @@ export default function PathDetail() {
                             </td>
                             <td className="px-[16px] py-[14px] text-right">
                               <button
-                                onClick={(e) => { e.stopPropagation(); handleRemoveTrainee(trainee.id); }}
+                                onClick={(e) => { e.stopPropagation(); handleRemoveTrainee(trainee.person_id); }}
                                 className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-[4px] text-[var(--color-muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600"
                                 title="Remove trainee"
                               >
                                 <X className="h-[14px] w-[14px]" />
                               </button>
                             </td>
-                          </tr>
-                        );
+                          </tr>,
+                        ];
+                        if (isExpanded) {
+                          rows.push(
+                            <tr key={`${trainee.id}-exp`} className="border-b border-[var(--color-border)]">
+                              <td colSpan={5} className="bg-[var(--color-background)] px-[24px] py-[16px]">
+                                {isLoadingThis ? (
+                                  <p className="font-mono text-[12px] text-[var(--color-muted-foreground)]">Loading progress...</p>
+                                ) : progress.length === 0 ? (
+                                  <p className="font-mono text-[12px] text-[var(--color-muted-foreground)]">No steps defined for this path yet.</p>
+                                ) : (
+                                  <div className="space-y-[6px]">
+                                    <p className="font-mono text-[11px] uppercase font-medium text-[var(--color-muted-foreground)] mb-[8px]">
+                                      STEP-BY-STEP PROGRESS — Click status icon to update
+                                    </p>
+                                    {progress.map((step: any) => (
+                                      <div key={step.id} className="flex items-center gap-[12px] py-[6px]">
+                                        <button
+                                          onClick={() => handleToggleStepStatus(trainee.id, step.path_step_id, step.status)}
+                                          className={`flex items-center justify-center w-[24px] h-[24px] rounded-full border-2 transition-colors ${
+                                            step.status === 'COMPLETED'
+                                              ? 'border-green-500 bg-green-500 text-white'
+                                              : step.status === 'IN_PROGRESS'
+                                                ? 'border-[#2596be] bg-[#2596be]/10 text-[#2596be]'
+                                                : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:border-[#2596be]'
+                                          }`}
+                                          title={`${step.status} — click to change`}
+                                        >
+                                          {step.status === 'COMPLETED' ? (
+                                            <Check className="h-[14px] w-[14px]" />
+                                          ) : step.status === 'IN_PROGRESS' ? (
+                                            <Loader className="h-[14px] w-[14px]" />
+                                          ) : (
+                                            <Circle className="h-[12px] w-[12px]" />
+                                          )}
+                                        </button>
+                                        <div className="flex-1">
+                                          <span className="text-[13px] text-[var(--color-foreground)]">{step.course_name || 'Untitled'}</span>
+                                          {step.course_number && (
+                                            <span className="ml-[8px] font-mono text-[11px] text-[var(--color-muted-foreground)]">{step.course_number}</span>
+                                          )}
+                                        </div>
+                                        <span className="font-mono text-[11px] text-[var(--color-muted-foreground)]">Phase {step.step_group}</span>
+                                        <span className={`font-mono text-[10px] uppercase tracking-wide px-[6px] py-[2px] rounded-[3px] ${
+                                          step.status === 'COMPLETED' ? 'text-green-600 bg-green-50' :
+                                          step.status === 'IN_PROGRESS' ? 'text-blue-600 bg-blue-50' :
+                                          'text-gray-500 bg-gray-100'
+                                        }`}>
+                                          {step.status?.replace('_', ' ')}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        }
+                        return rows;
                       })
                     )}
                   </tbody>
@@ -765,47 +991,71 @@ export default function PathDetail() {
 
             {/* Action Items Card */}
             <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-[8px] overflow-hidden">
-              <div className="px-[20px] py-[16px] border-b border-[var(--color-border)]">
+              <div className="px-[20px] py-[16px] border-b border-[var(--color-border)] flex items-center justify-between">
                 <h2 className="font-mono text-[13px] uppercase text-[var(--color-foreground)] font-bold">
                   ACTION ITEMS
                 </h2>
+                <button
+                  onClick={() => setShowActionModal(true)}
+                  className="inline-flex items-center gap-[6px] rounded-[6px] bg-[#2596be] px-[12px] py-[6px] font-mono text-[11px] font-bold text-[#09090B] uppercase tracking-wide transition-colors hover:bg-[#1e7da6]"
+                >
+                  <Plus className="h-[14px] w-[14px]" />
+                  ADD ACTION
+                </button>
               </div>
 
               <div className="px-[20px] py-[20px]">
                 {actions.length === 0 ? (
                   <p className="font-mono text-[13px] text-[var(--color-muted-foreground)]">
-                    No action items.
+                    No action items yet. Create one to track tasks for this training path.
                   </p>
                 ) : (
-                  <div className="space-y-[12px]">
+                  <div className="space-y-[8px]">
                     {actions.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-start gap-[12px] border-b border-[var(--color-border)] pb-[12px] last:border-0 last:pb-0"
+                        className="group flex items-start gap-[12px] rounded-[6px] border border-[var(--color-border)] px-[12px] py-[10px] transition-colors hover:bg-[var(--color-input)]"
                       >
-                        <div className="flex-1">
-                          <p className="text-[14px] font-medium text-[var(--color-foreground)]">
+                        <button
+                          onClick={() => handleToggleAction(item.id, item.status)}
+                          className={`mt-[2px] flex items-center justify-center w-[20px] h-[20px] rounded-[4px] border-2 transition-colors ${
+                            item.status?.toUpperCase() === 'DONE'
+                              ? 'border-green-500 bg-green-500 text-white'
+                              : 'border-[var(--color-border)] hover:border-[#2596be]'
+                          }`}
+                          title={item.status?.toUpperCase() === 'DONE' ? 'Mark as pending' : 'Mark as done'}
+                        >
+                          {item.status?.toUpperCase() === 'DONE' && <Check className="h-[12px] w-[12px]" />}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-[14px] font-medium ${item.status?.toUpperCase() === 'DONE' ? 'line-through text-[var(--color-muted-foreground)]' : 'text-[var(--color-foreground)]'}`}>
                             {item.title}
                           </p>
                           {item.description && (
-                            <p className="text-[13px] text-[var(--color-muted-foreground)] mt-[2px] leading-[1.5]">
+                            <p className="text-[12px] text-[var(--color-muted-foreground)] mt-[2px] leading-[1.5]">
                               {item.description}
                             </p>
                           )}
-                          <div className="flex items-center gap-[12px] mt-[6px]">
-                            <span className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
-                              {item.person_name}
-                            </span>
+                          <div className="flex items-center gap-[8px] mt-[4px]">
+                            {item.person_name && (
+                              <span className="font-mono text-[10px] text-[var(--color-muted-foreground)]">
+                                {item.person_name}
+                              </span>
+                            )}
                             {item.due_date && (
-                              <span className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
+                              <span className="font-mono text-[10px] text-[var(--color-muted-foreground)]">
                                 Due: {formatDate(item.due_date)}
                               </span>
                             )}
                           </div>
                         </div>
-                        <span className={`inline-flex px-[8px] py-[4px] rounded-[4px] text-[11px] font-medium font-mono whitespace-nowrap ${getActionStatusColor(item.status)}`}>
-                          {item.status?.toUpperCase()}
-                        </span>
+                        <button
+                          onClick={() => handleDeleteAction(item.id)}
+                          className="mt-[2px] inline-flex items-center justify-center w-[24px] h-[24px] rounded-[4px] text-[var(--color-muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600"
+                          title="Delete action"
+                        >
+                          <X className="h-[14px] w-[14px]" />
+                        </button>
                       </div>
                     ))}
                   </div>

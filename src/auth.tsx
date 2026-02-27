@@ -17,12 +17,14 @@ const USERS: User[] = [
 interface AuthContextType {
   user: User | null
   login: (email: string) => User | null
+  ssoLogin: (userData: User) => void
   logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   login: () => null,
+  ssoLogin: () => {},
   logout: () => {},
 })
 
@@ -52,12 +54,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null
   }
 
+  const ssoLogin = (userData: User) => {
+    setUser(userData)
+  }
+
   const logout = () => {
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, ssoLogin, logout }}>
       {children}
     </AuthContext.Provider>
   )

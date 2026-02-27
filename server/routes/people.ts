@@ -36,7 +36,8 @@ router.get('/', async (req, res) => {
 
     const result = await pool.query(
       `SELECT id, title, first_name, last_name, role, department, email, phone, status, is_complete,
-              TRIM(COALESCE(title, '') || ' ' || first_name || ' ' || last_name) AS name
+              display_name, username, bio, organization, company, specialty, country, mailing_address,
+              COALESCE(display_name, TRIM(COALESCE(title, '') || ' ' || first_name || ' ' || last_name)) AS name
        FROM people ${where}
        ORDER BY last_name, first_name
        LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
@@ -84,7 +85,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
-      `SELECT *, TRIM(COALESCE(title, '') || ' ' || first_name || ' ' || last_name) AS name FROM people WHERE id = $1`,
+      `SELECT *, COALESCE(display_name, TRIM(COALESCE(title, '') || ' ' || first_name || ' ' || last_name)) AS name FROM people WHERE id = $1`,
       [id]
     );
     if (result.rows.length === 0) {
@@ -165,13 +166,13 @@ router.get('/:id', async (req, res) => {
 // POST /api/people - create person
 router.post('/', async (req, res) => {
   try {
-    const { title, first_name, last_name, role, department, email, phone, date_of_birth, hire_date, office_location, notes, status, is_complete } = req.body;
+    const { title, first_name, last_name, role, department, email, phone, date_of_birth, hire_date, office_location, notes, status, is_complete, display_name, username, bio, organization, company, specialty, country, mailing_address } = req.body;
 
     const result = await pool.query(
-      `INSERT INTO people (title, first_name, last_name, role, department, email, phone, date_of_birth, hire_date, office_location, notes, status, is_complete)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      `INSERT INTO people (title, first_name, last_name, role, department, email, phone, date_of_birth, hire_date, office_location, notes, status, is_complete, display_name, username, bio, organization, company, specialty, country, mailing_address)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
        RETURNING *`,
-      [title || '', first_name, last_name, role || 'Other', department, email, phone, date_of_birth, hire_date, office_location, notes, status || 'ACTIVE', is_complete !== false]
+      [title || '', first_name, last_name, role || 'Other', department, email, phone, date_of_birth, hire_date, office_location, notes, status || 'ACTIVE', is_complete !== false, display_name, username, bio, organization, company, specialty, country, mailing_address]
     );
 
     res.status(201).json(result.rows[0]);
@@ -214,7 +215,7 @@ router.post('/quick-add', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, first_name, last_name, role, department, email, phone, date_of_birth, hire_date, office_location, notes, status, is_complete } = req.body;
+    const { title, first_name, last_name, role, department, email, phone, date_of_birth, hire_date, office_location, notes, status, is_complete, display_name, username, bio, organization, company, specialty, country, mailing_address } = req.body;
 
     const result = await pool.query(
       `UPDATE people SET
@@ -231,10 +232,18 @@ router.put('/:id', async (req, res) => {
         notes = COALESCE($11, notes),
         status = COALESCE($12, status),
         is_complete = COALESCE($13, is_complete),
+        display_name = COALESCE($14, display_name),
+        username = COALESCE($15, username),
+        bio = COALESCE($16, bio),
+        organization = COALESCE($17, organization),
+        company = COALESCE($18, company),
+        specialty = COALESCE($19, specialty),
+        country = COALESCE($20, country),
+        mailing_address = COALESCE($21, mailing_address),
         updated_at = NOW()
-       WHERE id = $14
+       WHERE id = $22
        RETURNING *`,
-      [title, first_name, last_name, role, department, email, phone, date_of_birth, hire_date, office_location, notes, status, is_complete, id]
+      [title, first_name, last_name, role, department, email, phone, date_of_birth, hire_date, office_location, notes, status, is_complete, display_name, username, bio, organization, company, specialty, country, mailing_address, id]
     );
 
     if (result.rows.length === 0) {

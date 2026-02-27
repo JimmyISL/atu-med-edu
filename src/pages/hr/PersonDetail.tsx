@@ -64,6 +64,8 @@ interface PersonData {
   first_name: string;
   last_name: string;
   name: string;
+  display_name: string;
+  username: string;
   role: string;
   department: string;
   email: string;
@@ -71,6 +73,12 @@ interface PersonData {
   date_of_birth: string;
   hire_date: string;
   office_location: string;
+  bio: string;
+  organization: string;
+  company: string;
+  specialty: string;
+  country: string;
+  mailing_address: string;
   notes: string;
   status: string;
   is_complete: boolean;
@@ -86,6 +94,8 @@ interface EditForm {
   title: string;
   first_name: string;
   last_name: string;
+  display_name: string;
+  username: string;
   role: string;
   department: string;
   email: string;
@@ -93,6 +103,12 @@ interface EditForm {
   date_of_birth: string;
   hire_date: string;
   office_location: string;
+  bio: string;
+  organization: string;
+  company: string;
+  specialty: string;
+  country: string;
+  mailing_address: string;
   notes: string;
   status: string;
 }
@@ -122,9 +138,10 @@ export default function PersonDetail() {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({
-    title: '', first_name: '', last_name: '', role: '', department: '',
-    email: '', phone: '', date_of_birth: '', hire_date: '',
-    office_location: '', notes: '', status: '',
+    title: '', first_name: '', last_name: '', display_name: '', username: '',
+    role: '', department: '', email: '', phone: '', date_of_birth: '', hire_date: '',
+    office_location: '', bio: '', organization: '', company: '', specialty: '',
+    country: '', mailing_address: '', notes: '', status: '',
   });
 
   const fetchPerson = () => {
@@ -156,6 +173,8 @@ export default function PersonDetail() {
       title: person.title || '',
       first_name: person.first_name || '',
       last_name: person.last_name || '',
+      display_name: person.display_name || '',
+      username: person.username || '',
       role: person.role || '',
       department: person.department || '',
       email: person.email || '',
@@ -163,6 +182,12 @@ export default function PersonDetail() {
       date_of_birth: person.date_of_birth ? person.date_of_birth.substring(0, 10) : '',
       hire_date: person.hire_date ? person.hire_date.substring(0, 10) : '',
       office_location: person.office_location || '',
+      bio: person.bio || '',
+      organization: person.organization || '',
+      company: person.company || '',
+      specialty: person.specialty || '',
+      country: person.country || '',
+      mailing_address: person.mailing_address || '',
       notes: person.notes || '',
       status: person.status || 'ACTIVE',
     });
@@ -410,6 +435,7 @@ export default function PersonDetail() {
                 >
                   <option value="">Select</option>
                   <option>Dr.</option>
+                  <option>Prof.</option>
                   <option>Mr.</option>
                   <option>Mrs.</option>
                   <option>Ms.</option>
@@ -430,6 +456,43 @@ export default function PersonDetail() {
                   type="text"
                   value={editForm.last_name}
                   onChange={(e) => handleEditChange('last_name', e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div className="flex flex-col gap-[4px]">
+                <label className={labelCls}>DISPLAY NAME</label>
+                <input
+                  type="text"
+                  value={editForm.display_name}
+                  onChange={(e) => handleEditChange('display_name', e.target.value)}
+                  className={inputCls}
+                  placeholder="Override auto-generated name"
+                />
+              </div>
+              <div className="flex flex-col gap-[4px]">
+                <label className={labelCls}>USERNAME</label>
+                <input
+                  type="text"
+                  value={editForm.username}
+                  onChange={(e) => handleEditChange('username', e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div className="flex flex-col gap-[4px]">
+                <label className={labelCls}>EMAIL</label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => handleEditChange('email', e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div className="flex flex-col gap-[4px]">
+                <label className={labelCls}>PHONE</label>
+                <input
+                  type="text"
+                  value={editForm.phone}
+                  onChange={(e) => handleEditChange('phone', e.target.value)}
                   className={inputCls}
                 />
               </div>
@@ -464,20 +527,29 @@ export default function PersonDetail() {
                 </select>
               </div>
               <div className="flex flex-col gap-[4px]">
-                <label className={labelCls}>EMAIL</label>
+                <label className={labelCls}>SPECIALTY</label>
                 <input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) => handleEditChange('email', e.target.value)}
+                  type="text"
+                  value={editForm.specialty}
+                  onChange={(e) => handleEditChange('specialty', e.target.value)}
                   className={inputCls}
                 />
               </div>
               <div className="flex flex-col gap-[4px]">
-                <label className={labelCls}>PHONE</label>
+                <label className={labelCls}>ORGANIZATION</label>
                 <input
                   type="text"
-                  value={editForm.phone}
-                  onChange={(e) => handleEditChange('phone', e.target.value)}
+                  value={editForm.organization}
+                  onChange={(e) => handleEditChange('organization', e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div className="flex flex-col gap-[4px]">
+                <label className={labelCls}>COMPANY</label>
+                <input
+                  type="text"
+                  value={editForm.company}
+                  onChange={(e) => handleEditChange('company', e.target.value)}
                   className={inputCls}
                 />
               </div>
@@ -509,6 +581,15 @@ export default function PersonDetail() {
                 />
               </div>
               <div className="flex flex-col gap-[4px]">
+                <label className={labelCls}>COUNTRY</label>
+                <input
+                  type="text"
+                  value={editForm.country}
+                  onChange={(e) => handleEditChange('country', e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div className="flex flex-col gap-[4px]">
                 <label className={labelCls}>STATUS</label>
                 <select
                   value={editForm.status}
@@ -519,6 +600,24 @@ export default function PersonDetail() {
                   <option value="INACTIVE">INACTIVE</option>
                   <option value="ON_LEAVE">ON LEAVE</option>
                 </select>
+              </div>
+              <div className="col-span-2 flex flex-col gap-[4px]">
+                <label className={labelCls}>MAILING ADDRESS</label>
+                <textarea
+                  value={editForm.mailing_address}
+                  onChange={(e) => handleEditChange('mailing_address', e.target.value)}
+                  rows={2}
+                  className={inputCls}
+                />
+              </div>
+              <div className="col-span-2 flex flex-col gap-[4px]">
+                <label className={labelCls}>BIO</label>
+                <textarea
+                  value={editForm.bio}
+                  onChange={(e) => handleEditChange('bio', e.target.value)}
+                  rows={3}
+                  className={inputCls}
+                />
               </div>
               <div className="col-span-2 flex flex-col gap-[4px]">
                 <label className={labelCls}>NOTES</label>
@@ -583,21 +682,21 @@ export default function PersonDetail() {
                   </div>
                   <div className="flex flex-col gap-[4px]">
                     <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      DATE OF BIRTH
+                      DISPLAY NAME
                     </label>
-                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.date_of_birth ? new Date(person.date_of_birth.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.display_name || '—'}</p>
                   </div>
                   <div className="flex flex-col gap-[4px]">
                     <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      OFFICE LOCATION
+                      USERNAME
                     </label>
-                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.office_location || '—'}</p>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.username || '—'}</p>
                   </div>
                   <div className="flex flex-col gap-[4px]">
                     <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      DATE OF HIRE
+                      EMAIL
                     </label>
-                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.hire_date ? new Date(person.hire_date.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.email || '—'}</p>
                   </div>
                   <div className="flex flex-col gap-[4px]">
                     <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
@@ -607,12 +706,62 @@ export default function PersonDetail() {
                   </div>
                   <div className="flex flex-col gap-[4px]">
                     <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                      EMAIL
+                      DATE OF BIRTH
                     </label>
-                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">
-                      {person.email || '—'}
-                    </p>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.date_of_birth ? new Date(person.date_of_birth.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
                   </div>
+                  <div className="flex flex-col gap-[4px]">
+                    <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                      DATE OF HIRE
+                    </label>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.hire_date ? new Date(person.hire_date.substring(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</p>
+                  </div>
+                  <div className="flex flex-col gap-[4px]">
+                    <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                      SPECIALTY
+                    </label>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.specialty || '—'}</p>
+                  </div>
+                  <div className="flex flex-col gap-[4px]">
+                    <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                      ORGANIZATION
+                    </label>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.organization || '—'}</p>
+                  </div>
+                  <div className="flex flex-col gap-[4px]">
+                    <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                      COMPANY
+                    </label>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.company || '—'}</p>
+                  </div>
+                  <div className="flex flex-col gap-[4px]">
+                    <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                      OFFICE LOCATION
+                    </label>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.office_location || '—'}</p>
+                  </div>
+                  <div className="flex flex-col gap-[4px]">
+                    <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                      COUNTRY
+                    </label>
+                    <p className="font-mono text-[13px] text-[var(--color-foreground)]">{person.country || '—'}</p>
+                  </div>
+                  {person.mailing_address && (
+                    <div className="col-span-2 flex flex-col gap-[4px]">
+                      <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                        MAILING ADDRESS
+                      </label>
+                      <p className="font-mono text-[13px] text-[var(--color-foreground)] whitespace-pre-wrap">{person.mailing_address}</p>
+                    </div>
+                  )}
+                  {person.bio && (
+                    <div className="col-span-2 flex flex-col gap-[4px]">
+                      <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                        BIO
+                      </label>
+                      <p className="font-mono text-[13px] text-[var(--color-foreground)] whitespace-pre-wrap">{person.bio}</p>
+                    </div>
+                  )}
                   {person.notes && (
                     <div className="col-span-2 flex flex-col gap-[4px]">
                       <label className="font-mono text-[11px] font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">

@@ -23,6 +23,7 @@ import PathDetail from './pages/paths/PathDetail'
 import PathBuilder from './pages/paths/PathBuilder'
 import PathPipeline from './pages/paths/PathPipeline'
 import Settings from './pages/settings/Settings'
+import SSOCallback from './pages/auth/SSOCallback'
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user } = useAuth()
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/login" element={<RedirectIfAuth><Login /></RedirectIfAuth>} />
           <Route path="/register" element={<RedirectIfAuth><Register /></RedirectIfAuth>} />
           <Route path="/forgot-password" element={<RedirectIfAuth><ForgotPassword /></RedirectIfAuth>} />
+          <Route path="/sso" element={<SSOCallback />} />
 
           <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
             <Route path="/dashboard" element={<Dashboard />} />

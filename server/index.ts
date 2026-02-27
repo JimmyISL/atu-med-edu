@@ -18,6 +18,7 @@ import uploadRoutes from './routes/upload.js';
 import pathsRoutes from './routes/paths.js';
 import actionsRoutes from './routes/actions.js';
 import notesRoutes from './routes/notes.js';
+import ssoRoutes from './routes/sso.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -38,6 +39,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/paths', pathsRoutes);
 app.use('/api/actions', actionsRoutes);
 app.use('/api/notes', notesRoutes);
+app.use('/api/sso', ssoRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

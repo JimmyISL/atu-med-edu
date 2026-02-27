@@ -148,6 +148,12 @@ export const api = {
     delete: (id: number) => request<any>(`/actions/${id}`, { method: 'DELETE' }),
   },
 
+  // SSO
+  sso: {
+    verify: (token: string) =>
+      request<any>('/sso/verify', { method: 'POST', body: JSON.stringify({ token }) }),
+  },
+
   // Person Notes
   notes: {
     list: (personId: number) => request<any[]>(`/notes/person/${personId}`),
